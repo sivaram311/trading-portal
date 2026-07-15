@@ -4,6 +4,8 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
+| 2026-07-15 ~13:20 | lead (cursor) | User GO: flip F/G IdP classic CSS→css-next (`:4910`/`:5910`); rebuild+redeploy F then G; evidence `css-next-flip/`; SIGN-OFF GO; tip on 0.1.0 (no patch bump) | F+G JWKS/health/login Bearer 200; push origin main |
+| 2026-07-15 ~10:45 | lead+promote crew | User-confirmed Q1+Q2: tagged `v0.1.0`, deployed F:4340/4341 + G:5340/5341, evidence GO, deps matrix updated | live smoke grade A both envs; paper-only |
 | 2026-07-15 ~10:33 | lead+user | Decision maker switch: user confirms from now; stop expecting Grok CLI GO | recorded in `agents/hires/DECISION-MAKER.md`; promote awaits user yes |
 | 2026-07-15 ~10:25 | lead+grok | DECISION-004 ask blocked — Cursor Grok usage limit exhausted (high/medium) | superseded — human confirms |
 | 2026-07-15 ~10:22 | lead+cursor | DECISION-003 MUST-FIX done: exclusive Playwright re-run 9/9 + SoT lastRelease=trading-portal-build-2026-07-15; registry.json ports[3341]=active | awaiting DECISION-004 |
