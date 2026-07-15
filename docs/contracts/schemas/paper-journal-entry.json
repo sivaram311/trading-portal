@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/paper-journal-entry.json",
+  "title": "PaperJournalEntry",
+  "description": "Persisted record of one decision lifecycle, per the state machine in docs/algorithms/AUTOMATION-PIPELINE.md §4 and the paper trading loop §5. MVP is paper-only; auto-fill is feature-flagged off (confirm-always).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "decision_id", "symbol", "session_date", "status",
+    "mode", "direction", "grade", "score", "reasons", "weights_version",
+    "entry", "stop", "targets", "invalid_if", "automation",
+    "detected_at"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Journal row id (uuid recommended)." },
+    "decision_id": { "type": "string", "description": "ConfluenceDecision.id this entry captures." },
+    "symbol": { "type": "string", "const": "XAUUSD" },
+    "session_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Trading day id (NY session) per CONFLUENCE-FRAMEWORK.md §3 shared context."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DETECTED", "SCORED", "RISK_CHECKED", "REJECTED", "ALERTED", "DISMISSED", "PAPER_OPEN", "PAPER_CLOSED"],
+      "description": "AUTOMATION-PIPELINE.md §4 state machine, extended with DISMISSED for an explicit operator dismiss (as distinct from a risk-gate REJECTED)."
+    },
+    "mode": { "type": "string", "enum": ["R", "C", "T", "NONE"] },
+    "direction": { "type": "string", "enum": ["long", "short", "flat"] },
+    "grade": { "type": "string", "enum": ["A+", "A", "B", "C", "F"] },
+    "score": { "type": "number" },
+    "reasons": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Copied verbatim from the ConfluenceDecision at capture time (immutable snapshot for audit)."
+    },
+    "weights_version": { "type": "string" },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "low", "high"],
+      "properties": {
+        "type": { "type": "string" },
+        "low": { "type": "number" },
+        "high": { "type": "number" }
+      }
+    },
+    "stop": { "type": "number" },
+    "targets": {
+      "type": "array",
+      "items": { "type": "number" }
+    },
+    "invalid_if": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "automation": { "type": "string", "enum": ["allow", "confirm", "deny"] },
+    "risk": {
+      "description": "Simplified embedded RiskVerdict outcome for journal display; full verdict is retrievable via decision_id.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "type": "boolean" },
+        "size": { "type": ["number", "null"] },
+        "deny_reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "detected_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the decision was first detected/scored (ts on ConfluenceDecision)."
+    },
+    "actioned_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "When the operator confirmed or dismissed. Null while status is DETECTED/SCORED/RISK_CHECKED/ALERTED."
+    },
+    "actioned_by": {
+      "type": ["string", "null"],
+      "description": "CSS subject/user id of the operator who confirmed/dismissed. Null for system-only rows (e.g. REJECTED by risk gate before any operator saw it)."
+    },
+    "action_note": {
+      "type": ["string", "null"],
+      "description": "Optional free-text note captured from confirm/dismiss request body."
+    },
+    "paper": {
+      "description": "Populated only once status reaches PAPER_OPEN; fully populated at PAPER_CLOSED.",
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "opened_at": { "type": ["string", "null"], "format": "date-time" },
+        "closed_at": { "type": ["string", "null"], "format": "date-time" },
+        "entry_price": { "type": ["number", "null"] },
+        "exit_price": { "type": ["number", "null"] },
+        "exit_reason": {
+          "type": ["string", "null"],
+          "enum": ["STOP", "T1", "T2", "MANUAL", "EOD", null]
+        },
+        "r_multiple": { "type": ["number", "null"] },
+        "mfe_r": { "type": ["number", "null"], "description": "Max favorable excursion, in R." },
+        "mae_r": { "type": ["number", "null"], "description": "Max adverse excursion, in R." }
+      }
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/ict-snapshot.json",
+  "title": "IctSnapshot",
+  "description": "Output of the ICT Signal Engine (docs/algorithms/ICT-SIGNAL-ENGINE.md §3). Pure compute over stored OHLC — never places orders.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["symbol", "asof", "killzone", "htf", "structure", "liquidity", "zones", "quality", "reasons"],
+  "properties": {
+    "symbol": { "type": "string", "const": "XAUUSD" },
+    "asof": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Evaluation instant (UTC)."
+    },
+    "killzone": {
+      "description": "Active killzone at asof, or null when none (\"enum | none\" in algorithm doc).",
+      "type": ["string", "null"],
+      "enum": ["LONDON_OPEN", "NY_OPEN", "NY_AFTERNOON", null]
+    },
+    "htf": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dealing_low", "dealing_high", "eq", "premium_discount", "bias"],
+      "properties": {
+        "dealing_low": { "type": "number" },
+        "dealing_high": { "type": "number" },
+        "eq": { "type": "number", "description": "Midpoint of dealing range (equilibrium)." },
+        "premium_discount": { "type": "string", "enum": ["premium", "discount", "EQ"] },
+        "bias": { "type": "string", "enum": ["long", "short", "neutral"] }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["swings", "event", "direction", "displacement"],
+      "properties": {
+        "swings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/swing" }
+        },
+        "event": { "type": "string", "enum": ["BOS", "MSS", "none"] },
+        "direction": { "type": "string", "enum": ["long", "short", "none"] },
+        "displacement": { "type": "boolean" }
+      }
+    },
+    "liquidity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pools", "event", "reclaim"],
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/liquidityPool" }
+        },
+        "event": { "type": "string", "enum": ["sweep", "none"] },
+        "swept_pool": {
+          "type": ["string", "null"],
+          "description": "Name of the pool referenced in liquidity.pools that was swept, or null."
+        },
+        "reclaim": {
+          "type": "boolean",
+          "description": "True only if price closed back inside the pool within sweep_reclaim_bars (cfg)."
+        }
+      }
+    },
+    "zones": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order_blocks", "fvgs"],
+      "properties": {
+        "order_blocks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/zone" }
+        },
+        "fvgs": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/zone" }
+        },
+        "active_entry": {
+          "oneOf": [{ "$ref": "#/$defs/zone" }, { "type": "null" }]
+        }
+      }
+    },
+    "quality": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Clamped 0..5 per ICT-SIGNAL-ENGINE.md §5.5."
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Stable reason codes per ICT-SIGNAL-ENGINE.md §6. HTF_CONFLICT added per §5.3/§7 failure-mode note.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "KZ_LONDON_OPEN", "KZ_NY_OPEN", "KZ_NY_AFTERNOON",
+          "SWEEP_AHH", "SWEEP_ALH", "SWEEP_PDH", "SWEEP_PDL", "SWEEP_EQH", "SWEEP_EQL",
+          "MSS_BULL", "MSS_BEAR", "BOS_BULL", "BOS_BEAR",
+          "DISP_OK", "OB_ACTIVE", "FVG_ACTIVE",
+          "PD_DISCOUNT", "PD_PREMIUM", "PD_EQ",
+          "NEWS_VETO", "DATA_GAP", "HTF_CONFLICT"
+        ]
+      }
+    },
+    "raw_refs": {
+      "type": "object",
+      "description": "Debug/audit references into source bars used to derive this snapshot.",
+      "additionalProperties": false,
+      "properties": {
+        "bar_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "swing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "price", "ts"],
+      "properties": {
+        "type": { "type": "string", "enum": ["high", "low"] },
+        "price": { "type": "number" },
+        "ts": { "type": "string", "format": "date-time" },
+        "index": { "type": "integer", "description": "Bar index within the evaluation window (implementation detail, optional)." }
+      }
+    },
+    "liquidityPool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "price", "side"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Pool identifier, e.g. PDH, PDL, AHH, ALH, EQH, EQL, ROUND."
+        },
+        "price": { "type": "number" },
+        "side": { "type": "string", "enum": ["high", "low"] }
+      }
+    },
+    "zone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "direction", "low", "high"],
+      "properties": {
+        "type": { "type": "string", "enum": ["OB", "FVG"] },
+        "direction": { "type": "string", "enum": ["bull", "bear"] },
+        "low": { "type": "number" },
+        "high": { "type": "number" },
+        "state": { "type": "string", "enum": ["fresh", "tested", "filled"] },
+        "ts": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

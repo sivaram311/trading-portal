@@ -1,0 +1,18 @@
+# Angular / node
+/node_modules
+/dist
+/out-tsc
+/.angular
+/tmp
+
+# Playwright
+/test-results
+/playwright-report
+/playwright/.cache
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*

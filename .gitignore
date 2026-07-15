@@ -1,0 +1,15 @@
+﻿backend/src/main/resources/application-local.properties
+backend/.env
+**/application-local.properties
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+frontend/ui-dev*.log
+frontend/ng-serve*.log
+frontend/e2e-run.log
+python/.venv/
+python/**/__pycache__/
+backend/target/
+*.log
+.env

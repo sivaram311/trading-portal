@@ -1,0 +1,8 @@
+target/
+*.class
+.env
+application-local.properties
+src/main/resources/application-local.properties
+HELP.md
+.mvn/
+!.mvn/wrapper/maven-wrapper.jar

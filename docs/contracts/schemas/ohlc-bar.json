@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/ohlc-bar.json",
+  "title": "OhlcBar",
+  "description": "One OHLCV bar for XAUUSD, enriched with America/New_York time. Sourced from Automation Pipeline Stage A (ingest). No engine may run on bars missing ny_time — see ICT-SIGNAL-ENGINE.md §2/§7.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["symbol", "tf", "ts", "ny_time", "open", "high", "low", "close", "volume"],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "const": "XAUUSD"
+    },
+    "tf": {
+      "type": "string",
+      "description": "Timeframe of the bar.",
+      "enum": ["M1", "M5", "M15", "H1", "H4", "D1"]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Bar open time in UTC (broker/source clock, normalized to UTC on ingest)."
+    },
+    "ny_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Bar open time normalized to America/New_York (DST-aware). Mandatory per ICT/Gann engine gate; missing value must fail closed (DATA_GAP) rather than default to UTC."
+    },
+    "open": { "type": "number" },
+    "high": { "type": "number" },
+    "low": { "type": "number" },
+    "close": { "type": "number" },
+    "volume": {
+      "type": "number",
+      "minimum": 0
+    },
+    "broker_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Optional raw broker-zone timestamp kept for audit/debug only. Never used for engine logic."
+    }
+  }
+}

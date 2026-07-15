@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/confluence-decision.json",
+  "title": "ConfluenceDecision",
+  "description": "Single handoff decision object per docs/theory/CONFLUENCE-FRAMEWORK.md §7. Fuses IctSnapshot + GannSnapshot. This is the object journaled and shown in the operator portal.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id", "symbol", "ts", "mode", "direction", "grade", "score", "agreement",
+    "reasons", "entry", "stop", "targets", "invalid_if", "engines", "automation", "weights_version"
+  ],
+  "properties": {
+    "id": { "type": "string", "description": "Stable unique id (uuid recommended); also used as decision_id downstream." },
+    "symbol": { "type": "string", "const": "XAUUSD" },
+    "ts": { "type": "string", "format": "date-time" },
+    "mode": {
+      "type": "string",
+      "enum": ["R", "C", "T", "NONE"],
+      "description": "R=Reversal, C=Continuation, T=Time-triggered watch, NONE=no actionable mode (CONFLICT/F/fail-closed)."
+    },
+    "direction": { "type": "string", "enum": ["long", "short", "flat"] },
+    "grade": {
+      "type": "string",
+      "enum": ["A+", "A", "B", "C", "F"],
+      "description": "Per CONFLUENCE-FRAMEWORK.md §6.2. F = CONFLICT / news_veto / midday-new-entry => NO_TRADE."
+    },
+    "score": {
+      "type": "number",
+      "description": "Raw points per §6.1, after soft penalties §6.3. Practical range ~0-9."
+    },
+    "agreement": {
+      "type": "string",
+      "enum": ["ALIGN_LONG", "ALIGN_SHORT", "CONFLICT", "SOFT", "NONE"],
+      "description": "Direction agreement matrix result per §4, prior to grading. NONE when either engine has insufficient quality to evaluate."
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Human-readable + stable reason chips per §5, e.g. \"ICT_SWEEP_ALH\", \"GANN_SO9\", \"KZ_NY_OPEN\", \"ALIGN_SHORT\", \"CONFLICT\". Engine-sourced codes SHOULD be prefixed ICT_/GANN_ (mirroring the raw code from IctSnapshot.reasons / GannSnapshot.reasons) so the UI can route reason chips back to the source engine panel. Not a closed enum here because of the ICT_*/GANN_* combinatorial prefix — see README open question on the canonical reason-code catalog.",
+      "items": { "type": "string" }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "low", "high"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Zone type backing the entry, e.g. OB, FVG, or a composite label."
+        },
+        "low": { "type": "number" },
+        "high": { "type": "number" }
+      }
+    },
+    "stop": {
+      "type": "number",
+      "description": "Invalidation price. Per §8 conflict rule: if ICT stop and Gann stop disagree, the wider stop is used in paper."
+    },
+    "targets": {
+      "type": "array",
+      "items": { "type": "number" },
+      "description": "T1, T2, ... per §8. May be empty when mode=T (watch-only, no trade plan yet)."
+    },
+    "invalid_if": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Mandatory hard-invalidation conditions (design principle §2.4). Required non-empty whenever mode != NONE."
+    },
+    "engines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ict_ref", "gann_ref"],
+      "properties": {
+        "ict_ref": { "type": "string", "description": "Reference to the source IctSnapshot (e.g. its asof instant or a snapshot id)." },
+        "gann_ref": { "type": "string", "description": "Reference to the source GannSnapshot (e.g. its asof instant or a snapshot id)." }
+      }
+    },
+    "automation": {
+      "type": "string",
+      "enum": ["allow", "confirm", "deny"],
+      "description": "Confluence-layer automation policy per §6.2, prior to the Risk Gate (RiskVerdict) which may further downgrade allow/confirm to deny."
+    },
+    "weights_version": {
+      "type": "string",
+      "description": "confluence_weights_version in effect when this decision was scored. Must be frozen/versioned per RISKS §Overfit weights (GROK-DECISION-001) — never silently changed."
+    }
+  },
+  "if": {
+    "properties": { "mode": { "const": "NONE" } }
+  },
+  "then": {},
+  "else": {
+    "properties": {
+      "invalid_if": { "minItems": 1 }
+    }
+  }
+}

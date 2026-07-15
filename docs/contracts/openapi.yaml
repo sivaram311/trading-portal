@@ -1,0 +1,470 @@
+openapi: 3.1.0
+jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema"
+info:
+  title: Trading Portal API (DEV contract)
+  version: 0.1.0
+  description: |
+    Contract-first specification for the Trading Portal backend (Spring Boot 3.3), covering
+    the MVP paper-confluence vertical slice defined in `agents/hires/GROK-DECISION-001.md`.
+
+    Scope: XAUUSD only. Live/micro-live broker execution is explicitly out of scope for this
+    contract (see `docs/algorithms/AUTOMATION-PIPELINE.md` §9). This document describes the
+    HTTP surface only — it does not implement, bind ports, or touch DB/CSS registries.
+
+    Field names are aligned 1:1 with:
+      - `docs/theory/CONFLUENCE-FRAMEWORK.md` (grades A+/A/B/C/F, modes R/C/T/NONE, mandatory invalidation)
+      - `docs/algorithms/ICT-SIGNAL-ENGINE.md` (IctSnapshot, reason codes)
+      - `docs/algorithms/GANN-CYCLE-ENGINE.md` (GannSnapshot, reason codes)
+      - `docs/algorithms/AUTOMATION-PIPELINE.md` (RiskVerdict, journal state machine)
+  contact:
+    name: Trading Portal crew
+    url: https://github.com/
+  license:
+    name: Proprietary — internal use only
+servers:
+  - url: http://localhost:3340
+    description: >-
+      DEV API port, reserved (status `reserved`, not yet `active`) in
+      `E:\MyAgent\workflow\ports\REGISTRY.md` by the architect hire per
+      `agents/pre-work/02-architecture.md` §3. This contract does not itself bind the port or
+      change the ports/DB/CSS registries.
+
+tags:
+  - name: health
+  - name: market-data
+  - name: engines
+  - name: confluence
+  - name: paper-trading
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/health:
+    get:
+      tags: [health]
+      summary: Liveness / readiness check
+      description: >-
+        The only unauthenticated endpoint. Must report degraded (not fake-green) if MT5 ingest
+        or `ny_time` enrichment is stale, per AUTOMATION-PIPELINE.md "MT5 terminal dependency" risk.
+      security: []
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is up (status may still be `degraded`).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/health/ny-time:
+    get:
+      tags: [health]
+      summary: ny_time correctness self-check
+      description: >-
+        Per `agents/pre-work/02-architecture.md` §7. Verifies the server's America/New_York
+        conversion (including the DST transition case) — a mandatory MVP gate, not optional
+        diagnostics. Unauthenticated for the same reason as /api/health (must be checkable even
+        when CSS/JWKS is degraded).
+      security: []
+      operationId: getNyTimeHealth
+      responses:
+        "200":
+          description: ny_time conversion is correct.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NyTimeHealthResponse"
+        "500":
+          description: ny_time conversion failed a self-check (e.g. DST edge case) — treat as a hard fail, never a silent fallback to UTC.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NyTimeHealthResponse"
+
+  /api/market/xauusd/ohlc:
+    get:
+      tags: [market-data]
+      summary: Query OHLC bars for XAUUSD
+      operationId: getXauusdOhlc
+      parameters:
+        - name: tf
+          in: query
+          required: true
+          description: Timeframe.
+          schema:
+            type: string
+            enum: [M1, M5, M15, H1, H4, D1]
+        - name: from
+          in: query
+          required: true
+          description: Inclusive range start (UTC instant).
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          description: Inclusive range end (UTC instant).
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Bars ordered ascending by `ts`.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "./schemas/ohlc-bar.json"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/engines/ict/snapshot:
+    get:
+      tags: [engines]
+      summary: Latest (or as-of) ICT engine snapshot
+      operationId: getIctSnapshot
+      parameters:
+        - name: asof
+          in: query
+          required: false
+          description: Evaluation instant; defaults to latest closed bar when omitted.
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Snapshot computed for the requested (or latest) instant.
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/ict-snapshot.json"
+        "204":
+          description: No snapshot available yet (e.g. cold start / DATA_GAP upstream).
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/engines/gann/snapshot:
+    get:
+      tags: [engines]
+      summary: Latest (or as-of) Gann engine snapshot
+      operationId: getGannSnapshot
+      parameters:
+        - name: asof
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: pivot_source
+          in: query
+          required: false
+          description: Defaults to NY_OPEN per GANN-CYCLE-ENGINE.md §2.
+          schema:
+            type: string
+            enum: [NY_OPEN, LONDON_OPEN, PDH, PDL, PREV_CLOSE, NY_HIGH, NY_LOW]
+      responses:
+        "200":
+          description: Snapshot computed for the requested (or latest) instant.
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/gann-snapshot.json"
+        "204":
+          description: No snapshot available yet.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/confluence/decision:
+    get:
+      tags: [confluence]
+      summary: Latest confluence decision
+      description: >-
+        Returns the most recent ConfluenceDecision (mode may be NONE / grade F — that is a valid,
+        non-empty response representing a fail-closed NO_TRADE state).
+      operationId: getLatestConfluenceDecision
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/confluence-decision.json"
+        "204":
+          description: No decision computed yet (engines cold / no bars).
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/paper/confirm:
+    post:
+      tags: [paper-trading]
+      summary: Operator confirms a decision, opening a paper position
+      description: >-
+        MVP is confirm-always (auto paper fill feature flag OFF) — this is the only way a
+        PAPER_OPEN row is created. The server re-runs / re-checks the RiskVerdict for the
+        decision before opening; a prior risk deny or CONFLICT/grade-F decision must be rejected
+        here even if the client attempts to confirm it (Q1 gate: "CONFLICT / risk deny never
+        creates paper entries").
+      operationId: confirmPaperDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmRequest"
+      responses:
+        "200":
+          description: Paper position opened (or entry recorded as ALERTED->PAPER_OPEN).
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/paper-journal-entry.json"
+        "404":
+          description: decision_id not found.
+        "409":
+          description: >-
+            Decision is not confirmable (already actioned, risk denies, automation=deny,
+            or mode=NONE/grade=F).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/paper/dismiss:
+    post:
+      tags: [paper-trading]
+      summary: Operator dismisses a decision without opening a paper position
+      operationId: dismissPaperDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DismissRequest"
+      responses:
+        "200":
+          description: Journal row recorded with status DISMISSED.
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/paper-journal-entry.json"
+        "404":
+          description: decision_id not found.
+        "409":
+          description: Decision already actioned (confirmed or previously dismissed).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/paper/journal:
+    get:
+      tags: [paper-trading]
+      summary: List paper journal entries
+      operationId: listPaperJournal
+      parameters:
+        - name: grade
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["A+", "A", "B", "C", "F"]
+        - name: mode
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [R, C, T, NONE]
+        - name: direction
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [long, short, flat]
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DETECTED, SCORED, RISK_CHECKED, REJECTED, ALERTED, DISMISSED, PAPER_OPEN, PAPER_CLOSED]
+        - name: session_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >-
+        Bearer JWT issued by Centralized Security System (CSS) DEV IdP (:9000). API validates
+        the token signature via CSS JWKS and checks audience/client match against
+        `clientId=trading-portal` (per GROK-DECISION-001 auth decision). Required on every
+        endpoint except /api/health.
+
+  responses:
+    BadRequest:
+      description: Invalid query parameters.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: Missing/invalid/expired bearer token, or audience/client mismatch.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Stable machine-readable error code.
+        message:
+          type: string
+        details:
+          type: object
+
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, ts]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded, down]
+        ts:
+          type: string
+          format: date-time
+        ny_time:
+          type: string
+          format: date-time
+          description: Server-computed America/New_York instant, for the mandatory ny_time correctness tests.
+        checks:
+          type: object
+          additionalProperties: false
+          properties:
+            db:
+              type: boolean
+            ingest:
+              type: boolean
+              description: MT5 ingest freshness check.
+            mt5:
+              type: boolean
+
+    NyTimeHealthResponse:
+      type: object
+      additionalProperties: false
+      required: [ok, utc_now, ny_time_now, checks]
+      properties:
+        ok:
+          type: boolean
+        utc_now:
+          type: string
+          format: date-time
+        ny_time_now:
+          type: string
+          format: date-time
+        checks:
+          type: array
+          description: Individual self-check cases, including at least one DST-transition fixture.
+          items:
+            type: object
+            additionalProperties: false
+            required: [name, pass]
+            properties:
+              name:
+                type: string
+                description: e.g. "dst_spring_forward_2026", "dst_fall_back_2026", "offset_utc_minus_4", "offset_utc_minus_5"
+              pass:
+                type: boolean
+              detail:
+                type: string
+
+    ConfirmRequest:
+      type: object
+      additionalProperties: false
+      required: [decision_id]
+      properties:
+        decision_id:
+          type: string
+        note:
+          type: string
+
+    DismissRequest:
+      type: object
+      additionalProperties: false
+      required: [decision_id]
+      properties:
+        decision_id:
+          type: string
+        reason:
+          type: string
+
+    JournalListResponse:
+      type: object
+      additionalProperties: false
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "./schemas/paper-journal-entry.json"
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+        offset:
+          type: integer

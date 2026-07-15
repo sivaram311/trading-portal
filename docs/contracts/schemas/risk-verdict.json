@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/risk-verdict.json",
+  "title": "RiskVerdict",
+  "description": "Output of the Risk Gate (docs/algorithms/AUTOMATION-PIPELINE.md §3 Stage D). Evaluated after a ConfluenceDecision, even when automation=allow.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["decision_id", "ts", "ok", "deny_reasons", "checks"],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "description": "ConfluenceDecision.id this verdict was computed for."
+    },
+    "ts": { "type": "string", "format": "date-time" },
+    "ok": {
+      "type": "boolean",
+      "description": "True only if every check in `checks` passes and confluence.automation != deny."
+    },
+    "size": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "description": "Sized paper position (units/lots, tunable). Null when ok=false. MVP: sizing is virtual/paper only — see risk.policy Max risk per trade <=0.5% equity."
+    },
+    "risk_per_trade_pct": {
+      "type": ["number", "null"],
+      "description": "Percent of paper equity risked at `size`/`stop`, when ok=true."
+    },
+    "daily_loss_r": {
+      "type": "number",
+      "description": "Running R-multiple loss for the current trading day (session_date), used against the -2R halt policy."
+    },
+    "open_positions": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current open paper positions on XAUUSD (max 1 in MVP)."
+    },
+    "deny_reasons": {
+      "type": "array",
+      "description": "Stable deny codes. Empty when ok=true.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "RISK_CONFLUENCE_DENY",
+          "RISK_MAX_RISK_PER_TRADE",
+          "RISK_MAX_DAILY_LOSS",
+          "RISK_MAX_OPEN_POSITIONS",
+          "RISK_NEWS_VETO",
+          "RISK_SPREAD",
+          "RISK_MIDDAY_SESSION",
+          "RISK_DUPLICATE",
+          "RISK_GRADE_FLOOR",
+          "RISK_DATA_GAP"
+        ]
+      }
+    },
+    "checks": {
+      "type": "object",
+      "description": "Per-rule pass/fail explainability map, one entry per policy row in AUTOMATION-PIPELINE.md §3 Stage D. true = passed.",
+      "additionalProperties": false,
+      "required": [
+        "max_risk_per_trade", "max_daily_loss", "max_open_positions",
+        "news_veto", "spread_session", "duplicate_suppression", "grade_floor"
+      ],
+      "properties": {
+        "max_risk_per_trade": { "type": "boolean" },
+        "max_daily_loss": { "type": "boolean" },
+        "max_open_positions": { "type": "boolean" },
+        "news_veto": { "type": "boolean" },
+        "spread_session": { "type": "boolean" },
+        "duplicate_suppression": { "type": "boolean" },
+        "grade_floor": {
+          "type": "boolean",
+          "description": "Live requires A+; paper allows A (per §3 Stage D table). MVP has no live path, so this effectively gates confirm-eligibility only."
+        }
+      }
+    }
+  }
+}

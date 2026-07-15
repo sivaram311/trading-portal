@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trading-portal.dev/schemas/gann-snapshot.json",
+  "title": "GannSnapshot",
+  "description": "Output of the Gann Cycle Engine (docs/algorithms/GANN-CYCLE-ENGINE.md §3). Pure compute over stored OHLC — never places orders.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["symbol", "asof", "pivot", "angle", "so9", "time_square", "cycles", "killzone", "gann_bias", "quality", "reasons"],
+  "properties": {
+    "symbol": { "type": "string", "const": "XAUUSD" },
+    "asof": { "type": "string", "format": "date-time" },
+    "pivot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "price", "origin_ny"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["NY_OPEN", "LONDON_OPEN", "PDH", "PDL", "PREV_CLOSE", "NY_HIGH", "NY_LOW"]
+        },
+        "price": { "type": "number" },
+        "origin_ny": { "type": "string", "format": "date-time" }
+      }
+    },
+    "angle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slope_1x1", "equilibrium", "deviation", "stretch_atr", "bias", "alert", "fan"],
+      "properties": {
+        "slope_1x1": { "type": "number", "description": "ATR-per-bar slope on entry TF (v1 standard)." },
+        "equilibrium": { "type": "number" },
+        "deviation": { "type": "number" },
+        "stretch_atr": { "type": "number", "description": "deviation / atr; compared against cfg.atr_alert." },
+        "bias": { "type": "string", "enum": ["balanced", "over_up", "over_down"] },
+        "alert": { "type": "boolean" },
+        "fan": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["m1x1", "m2x1", "m1x2"],
+          "properties": {
+            "m1x1": { "type": "number" },
+            "m2x1": { "type": "number" },
+            "m1x2": { "type": "number" }
+          }
+        }
+      }
+    },
+    "so9": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["levels", "at_level"],
+      "properties": {
+        "levels": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/so9Level" }
+        },
+        "at_level": { "type": "boolean" },
+        "nearest": {
+          "oneOf": [{ "$ref": "#/$defs/so9Level" }, { "type": "null" }]
+        }
+      }
+    },
+    "time_square": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minutes_elapsed", "price_move", "milestones", "any_near_square"],
+      "properties": {
+        "minutes_elapsed": { "type": "number" },
+        "price_move": { "type": "number", "description": "abs(px - pivot.price)." },
+        "milestones": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/milestone" }
+        },
+        "any_near_square": { "type": "boolean" }
+      }
+    },
+    "cycles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session_fraction"],
+      "properties": {
+        "session_fraction": { "type": "number", "minimum": 0 },
+        "checkpoint": {
+          "type": ["string", "null"],
+          "description": "Nearest cfg.cycle_fractions label, e.g. CYC_1_4, or null. See README open question on exact label mapping."
+        }
+      }
+    },
+    "killzone": {
+      "type": ["string", "null"],
+      "enum": ["LONDON_OPEN", "NY_OPEN", "NY_AFTERNOON", null]
+    },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "volume_spike": { "type": "boolean" },
+        "reversal_candle": { "type": "boolean" },
+        "rsi_div": { "type": ["boolean", "null"] }
+      }
+    },
+    "gann_bias": {
+      "type": "string",
+      "enum": ["fade_long", "fade_short", "trend_long", "trend_short", "neutral"]
+    },
+    "quality": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "reasons": {
+      "type": "array",
+      "description": "Stable reason codes per GANN-CYCLE-ENGINE.md §6. Cycle-fraction labels (CYC_*) and pivot labels (PIVOT_*) enumerated per cfg.cycle_fractions / pivot_source — see README open question.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ANG_OVER_UP", "ANG_OVER_DOWN", "ANG_BALANCED", "ANG_ALERT",
+          "SO9_FINE", "SO9_ODD", "SO9_EVEN",
+          "TSQ_45", "TSQ_90", "TSQ_180", "TSQ_NEAR",
+          "CYC_1_8", "CYC_1_4", "CYC_1_3", "CYC_1_2", "CYC_3_4", "CYC_7_8",
+          "KZ_LONDON_OPEN", "KZ_NY_OPEN", "KZ_NY_AFTERNOON",
+          "VOL_SPIKE", "REV_CANDLE", "RSI_DIV",
+          "PIVOT_NY_OPEN", "PIVOT_LONDON_OPEN", "PIVOT_PDH", "PIVOT_PDL", "PIVOT_PREV_CLOSE", "PIVOT_NY_HIGH", "PIVOT_NY_LOW",
+          "DATA_GAP"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "so9Level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "k", "price", "dist"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["fine", "odd", "even"] },
+        "k": { "type": "number", "description": "Offset multiplier/step used to derive this level (signed)." },
+        "price": { "type": "number" },
+        "dist": { "type": "number", "description": "Signed or absolute distance from current price — implementation must document sign convention." }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["m", "target", "near_time", "near_price", "near_square"],
+      "properties": {
+        "m": { "type": "number", "description": "Milestone minute mark, e.g. 45/90/180." },
+        "target": { "type": "number" },
+        "near_time": { "type": "boolean" },
+        "near_price": { "type": "boolean" },
+        "near_square": { "type": "boolean" }
+      }
+    }
+  }
+}

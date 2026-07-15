@@ -1,0 +1,5 @@
+# Copy to application-local.properties (gitignored) and fill the DEV DB password.
+# Source of truth: E:\MyAgent\workflow\db\secrets\postgres.env (TRADING_PORTAL_ROLE_DEV_PASSWORD)
+# This file (the .example) must NEVER contain a real secret.
+spring.datasource.username=app_trading_portal_dev
+spring.datasource.password=CHANGE_ME_TRADING_PORTAL_ROLE_DEV_PASSWORD

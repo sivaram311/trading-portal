@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+/* Atmospheric backdrop: deep obsidian with a low gold aurora + faint cool horizon.
+   Deliberately not purple-on-white, not cream+terracotta. */
+body {
+  background-color: #07080a;
+  background-image:
+    radial-gradient(120% 80% at 78% -10%, rgba(217, 164, 65, 0.16), transparent 55%),
+    radial-gradient(90% 70% at 8% 110%, rgba(45, 96, 110, 0.20), transparent 60%),
+    linear-gradient(180deg, #07080a 0%, #0a0c10 55%, #06070a 100%);
+  background-attachment: fixed;
+}
+
+/* Subtle film grain so the dark field reads as a lit room, not a flat panel. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Numbers should feel like a terminal readout. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+::selection {
+  background: rgba(217, 164, 65, 0.3);
+}
+
+/* Slim custom scrollbar for the scroll-below detail panels. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #252c37 transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #252c37;
+  border-radius: 999px;
+}
