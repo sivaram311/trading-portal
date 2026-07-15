@@ -1,7 +1,9 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://127.0.0.1:4340',
-  cssUrl: 'http://127.0.0.1:4910',
+  /** Same-origin via nginx (`/api` → Spring). */
+  apiUrl: '',
+  /** Same-origin via nginx (`/auth` → CSS). */
+  cssUrl: '',
   clientId: 'trading-portal',
   devToken: '' as string
 };

@@ -119,14 +119,24 @@ export class LoginComponent {
   private describe(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       if (err.status === 0) {
-        return `Cannot reach CSS at ${environment.cssUrl}. Start CSS (:9000)${
-          this.hasDevToken ? ' or use the DEV_TOKEN demo option below.' : '.'
-        }`;
+        return `Cannot reach CSS at ${environment.cssUrl || location.origin}. Start the IdP or check nginx /auth.`;
       }
+      const cssMsg =
+        typeof err.error === 'string'
+          ? err.error
+          : err.error && typeof err.error === 'object' && 'message' in err.error
+            ? String((err.error as { message?: string }).message || '')
+            : '';
       if (err.status === 401 || err.status === 403) {
-        return 'Invalid credentials for clientId=' + environment.clientId + '.';
+        if (/unknown or disabled client/i.test(cssMsg)) {
+          return `CSS rejected clientId "${environment.clientId}" (not registered/enabled on this IdP). ${cssMsg}`;
+        }
+        if (/no roles for application/i.test(cssMsg)) {
+          return `User has no roles on clientId "${environment.clientId}". Ask ops to grant ROLE_USER.`;
+        }
+        return cssMsg || `Login failed for clientId="${environment.clientId}" (check username/password).`;
       }
-      return `CSS login failed (${err.status}). ${err.error?.message ?? ''}`.trim();
+      return `CSS login failed (${err.status}). ${cssMsg}`.trim();
     }
     return err instanceof Error ? err.message : 'Login failed.';
   }

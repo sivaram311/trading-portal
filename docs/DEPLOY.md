@@ -1,20 +1,17 @@
 # DEPLOY — Trading Portal
 
-| Env | Path | API | UI | CSS JWKS / IdP | Start |
-|-----|------|-----|-----|----------------|-------|
-| DEV | `E:\MyWorkspace\trading-portal` | 3340 | 3341 | `:9000` (loopback; css-next public `https://css-next.delena.buzz` also OK) | `scripts/run-api-dev.ps1` + `frontend/scripts/run-ui-dev.ps1` |
-| PREPROD | `F:\apps\trading-portal` | 4340 | 4341 | css-next `:4910` (`https://css-next-staging.delena.buzz`) | `powershell -File start.ps1` |
-| PROD | `G:\apps\trading-portal` | 5340 | 5341 | css-next `:5910` / issuer `https://css-next.delena.buzz` | `powershell -File start.ps1` |
+| Env | Path | API | UI | Public hostname | CSS (via nginx `/auth`) |
+|-----|------|-----|-----|-----------------|-------------------------|
+| DEV | `E:\MyWorkspace\trading-portal` | 3340 | static `frontend/dist/public-dev` | https://trading-portal-dev.delena.buzz | `:9000` |
+| PREPROD | `F:\apps\trading-portal` | 4340 | `app/ui` | https://trading-portal-staging.delena.buzz | css-next `:4910` |
+| PROD | `G:\apps\trading-portal` | 5340 | `app/ui` | https://trading-portal.delena.buzz | css-next `:5910` |
 
-**Version live:** 0.1.0 (tip commit on tagged line — no patch bump for IdP flip)  
-**Auth:** `clientId=trading-portal` · admin + `CSS_ADMIN_PASSWORD` from `G:\apps\css-next\.env` (not README `admin123` on F/G)  
-**Scope:** paper trading only — no live broker adapter  
+**Version live:** 0.1.0 · git tag `v0.1.0`  
+**Auth:** `clientId=trading-portal` · `admin` / `admin123`  
+**Edge:** Cloudflare A proxied → origin `103.118.183.185` → nginx `:80` (Flexible SSL)  
+**Nginx confs:** `E:\Source\Deployment\conf\apps\trading-portal*.delena.buzz.conf` (also under `C:\nginx-1.30.3\conf\apps\`)  
+**Scope:** paper trading only  
 
-| UI env | `cssUrl` |
-|--------|----------|
-| `environment.ts` (DEV) | `http://127.0.0.1:9000` |
-| `environment.preprod.ts` | `http://127.0.0.1:4910` |
-| `environment.prod.ts` | `http://127.0.0.1:5910` |
+Local loopback UI ports 3341/4341/5341 optional for operators; public traffic uses nginx static + `/api` + `/auth`.
 
-Release evidence: `H:\releases\trading-portal-0.1.0\`  
-css-next flip evidence: `H:\releases\trading-portal-0.1.0\evidence\css-next-flip\`
+Release evidence: `H:\releases\trading-portal-0.1.0\`
