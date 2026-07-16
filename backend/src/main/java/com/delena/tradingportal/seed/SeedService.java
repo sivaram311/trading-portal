@@ -34,6 +34,7 @@ public class SeedService {
 
     private static final Logger log = LoggerFactory.getLogger(SeedService.class);
     private static final String SYMBOL = MarketDataService.SYMBOL;
+    private static final String DXY_SYMBOL = "DXY";
 
     private final OhlcCandleRepository repository;
 
@@ -60,8 +61,9 @@ public class SeedService {
         }
         all.addAll(aggregate(path, "M15", 15));
         all.addAll(aggregate(path, "H1", 60));
+        all.addAll(buildDxyBars(path));
         repository.saveAll(all);
-        log.info("Seeded {} synthetic XAUUSD bars (M5={}, +M15/H1 aggregates); asof={}",
+        log.info("Seeded {} synthetic XAUUSD + DXY bars (M5={}, +M15/H1 aggregates); asof={}",
                 all.size(), path.size(), seededAsof());
         return all.size();
     }
@@ -134,6 +136,46 @@ public class SeedService {
             out.add(new M5(nyInstant(finalDay, t), r(open), r(high), r(low), r(close), vols[i]));
             prev = close;
             t = t.plusMinutes(5);
+        }
+        return out;
+    }
+
+    // ------------------------------------------------------------------ DXY (inverse confirmation, §4.2)
+
+    /** Synthetic DXY M15/H1 bars inversely correlated to gold for SMT confirmation only. */
+    private List<OhlcCandleEntity> buildDxyBars(List<M5> goldM5) {
+        List<M5> dxyM5 = new ArrayList<>();
+        double dxy = 104.5;
+        for (M5 g : goldM5) {
+            double goldDelta = g.close() - g.open();
+            double open = dxy;
+            double close = r(dxy - goldDelta * 0.01); // inverse drift vs gold
+            double high = Math.max(open, close) + 0.05;
+            double low = Math.min(open, close) - 0.05;
+            dxyM5.add(new M5(g.time(), r(open), r(high), r(low), r(close), g.volume()));
+            dxy = close;
+        }
+        List<OhlcCandleEntity> out = new ArrayList<>();
+        out.addAll(aggregateDxy(dxyM5, "M15", 15));
+        out.addAll(aggregateDxy(dxyM5, "H1", 60));
+        return out;
+    }
+
+    private List<OhlcCandleEntity> aggregateDxy(List<M5> m5, String tf, int minutes) {
+        Map<Instant, List<M5>> buckets = new LinkedHashMap<>();
+        for (M5 b : m5) {
+            Instant bucket = floorTo(b.time(), minutes);
+            buckets.computeIfAbsent(bucket, k -> new ArrayList<>()).add(b);
+        }
+        List<OhlcCandleEntity> out = new ArrayList<>();
+        for (var e : buckets.entrySet()) {
+            List<M5> bs = e.getValue();
+            double open = bs.get(0).open();
+            double close = bs.get(bs.size() - 1).close();
+            double high = bs.stream().mapToDouble(M5::high).max().orElse(open);
+            double low = bs.stream().mapToDouble(M5::low).min().orElse(open);
+            double vol = bs.stream().mapToDouble(M5::volume).sum();
+            out.add(new OhlcCandleEntity(DXY_SYMBOL, tf, e.getKey(), e.getKey(), r(open), r(high), r(low), r(close), vol));
         }
         return out;
     }

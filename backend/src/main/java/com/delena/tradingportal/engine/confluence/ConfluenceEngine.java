@@ -1,6 +1,7 @@
 package com.delena.tradingportal.engine.confluence;
 
 import com.delena.tradingportal.common.NyTime;
+import com.delena.tradingportal.engine.smt.SmtDetector;
 import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.Entry;
 import com.delena.tradingportal.model.GannSnapshot;
@@ -25,6 +26,11 @@ public class ConfluenceEngine {
 
     public ConfluenceDecision decide(IctSnapshot ict, GannSnapshot gann, Instant ts,
                                      boolean newsVeto, String weightsVersion) {
+        return decide(ict, gann, ts, newsVeto, weightsVersion, null);
+    }
+
+    public ConfluenceDecision decide(IctSnapshot ict, GannSnapshot gann, Instant ts,
+                                     boolean newsVeto, String weightsVersion, SmtDetector.SmtSignal smt) {
         String ictDir = ictDirection(ict);
         String gannSide = gannSide(gann);
         boolean dataGap = ict.reasons().contains("DATA_GAP") || gann.reasons().contains("DATA_GAP");
@@ -124,6 +130,7 @@ public class ConfluenceEngine {
         if (gann.filters() != null && (gann.filters().volumeSpike() || gann.filters().reversalCandle())) {
             score += 1;
         }
+        score = applySmt(score, direction, smt, reasons);
 
         // --- Grade (§6.2) + soft penalties (§6.3) ---
         String grade = grade(score, aligned);
@@ -162,6 +169,33 @@ public class ConfluenceEngine {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    private static double applySmt(double score, String direction, SmtDetector.SmtSignal smt,
+                                   Set<String> reasons) {
+        if (smt == null || !smt.divergent()) {
+            return score;
+        }
+        if ("gold_strong".equals(smt.bias())) {
+            if ("long".equals(direction)) {
+                reasons.add("SMT_GOLD_STRONG");
+                return score + 1;
+            }
+            if ("short".equals(direction)) {
+                reasons.add("SMT_DIVERGE");
+                return score - 1;
+            }
+        } else if ("gold_weak".equals(smt.bias())) {
+            if ("short".equals(direction)) {
+                reasons.add("SMT_GOLD_WEAK");
+                return score + 1;
+            }
+            if ("long".equals(direction)) {
+                reasons.add("SMT_DIVERGE");
+                return score - 1;
+            }
+        }
+        return score;
+    }
 
     private static String ictDirection(IctSnapshot ict) {
         String d = ict.structure().direction();

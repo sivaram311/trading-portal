@@ -22,6 +22,7 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 | PositionManager | BE@1R, partial T1, ATR trail; **max 1 open** (no pyramiding) |
 | Backtester | bar-by-bar + **walk-forward** + **Monte-Carlo** shuffle |
 | UI overlays | Confluence price rail: OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
+| DXY SMT | Confirmation only (`SmtDetector`); soft fail if no DXY bars |
 | Paper close | `POST /api/paper/close` `{ decision_id, exit_reason, exit_price }` |
 
 Smoke evidence: `docs/DEEP-ALGO-DEV-SMOKE-0.3.md`.

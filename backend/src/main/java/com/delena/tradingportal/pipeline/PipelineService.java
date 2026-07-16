@@ -8,6 +8,7 @@ import com.delena.tradingportal.engine.gann.GannEngine;
 import com.delena.tradingportal.engine.ict.IctEngine;
 import com.delena.tradingportal.engine.risk.MarketQualityGate;
 import com.delena.tradingportal.engine.risk.RiskGate;
+import com.delena.tradingportal.engine.smt.SmtDetector;
 import com.delena.tradingportal.engine.style.StyleProfile;
 import com.delena.tradingportal.engine.style.StyleRegistry;
 import com.delena.tradingportal.market.MarketDataService;
@@ -66,6 +67,7 @@ public class PipelineService {
     private final TradingProperties props;
     private final StyleRegistry styleRegistry;
     private final MarketQualityGate marketQualityGate;
+    private final SmtDetector smtDetector;
 
     public PipelineService(MarketDataService market, IctEngine ictEngine, GannEngine gannEngine,
                            ConfluenceEngine confluenceEngine, RiskGate riskGate,
@@ -73,7 +75,8 @@ public class PipelineService {
                            ConfluenceDecisionRepository decisionRepo, IctSnapshotRepository ictRepo,
                            GannSnapshotRepository gannRepo, RiskVerdictRepository riskRepo,
                            PaperJournalRepository journalRepo, Json json, TradingProperties props,
-                           StyleRegistry styleRegistry, MarketQualityGate marketQualityGate) {
+                           StyleRegistry styleRegistry, MarketQualityGate marketQualityGate,
+                           SmtDetector smtDetector) {
         this.market = market;
         this.ictEngine = ictEngine;
         this.gannEngine = gannEngine;
@@ -90,6 +93,7 @@ public class PipelineService {
         this.props = props;
         this.styleRegistry = styleRegistry;
         this.marketQualityGate = marketQualityGate;
+        this.smtDetector = smtDetector;
     }
 
     /** Recompute the latest decision from stored OHLC and persist all artifacts. */
@@ -119,8 +123,11 @@ public class PipelineService {
         StyleProfile style = styleRegistry.get(props.getStyle());
         IctSnapshot ict = ictEngine.compute(h4, h1, m15, m5, effectiveAsof, style.ict());
         GannSnapshot gann = gannEngine.compute(m5, d1, effectiveAsof, style.gann(), "NY_OPEN");
+        var dxyM15 = market.barsUpTo("DXY", "M15", effectiveAsof);
+        var dxyH1 = market.barsUpTo("DXY", "H1", effectiveAsof);
+        var smt = smtDetector.detect(m15, h1, dxyM15, dxyH1);
         ConfluenceDecision decision = confluenceEngine.decide(ict, gann, effectiveAsof, newsVeto,
-                props.getConfluence().getWeightsVersion());
+                props.getConfluence().getWeightsVersion(), smt);
 
         int openPositions = (int) journalRepo.countOpenPositions();
         Instant lastSameDirTs = decisionRepo.findTopByDirectionOrderByTsDesc(decision.direction())

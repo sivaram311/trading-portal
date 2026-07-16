@@ -20,13 +20,21 @@ public class MarketDataService {
         this.repository = repository;
     }
 
-    public List<OhlcBar> bars(String tf) {
-        return repository.findBySymbolAndTfOrderByTsAsc(SYMBOL, tf).stream().map(MarketDataService::toBar).toList();
+    public List<OhlcBar> bars(String symbol, String tf) {
+        return repository.findBySymbolAndTfOrderByTsAsc(symbol, tf).stream().map(MarketDataService::toBar).toList();
     }
 
     /** Bars for a timeframe with {@code ts <= asof} (replay / point-in-time compute). */
+    public List<OhlcBar> barsUpTo(String symbol, String tf, Instant asof) {
+        return bars(symbol, tf).stream().filter(b -> !b.ts().isAfter(asof)).toList();
+    }
+
+    public List<OhlcBar> bars(String tf) {
+        return bars(SYMBOL, tf);
+    }
+
     public List<OhlcBar> barsUpTo(String tf, Instant asof) {
-        return bars(tf).stream().filter(b -> !b.ts().isAfter(asof)).toList();
+        return barsUpTo(SYMBOL, tf, asof);
     }
 
     public List<OhlcBar> bars(String tf, Instant from, Instant to) {

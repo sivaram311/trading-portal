@@ -39,7 +39,7 @@ Living Java engines already exist under `backend/src/main/java/com/delena/tradin
 | Breaker / IFVG | `IctEngine.deriveBreakers/Ifvgs` | **Done** — Zones.breakers/ifvgs + UNICORN selectEntry |
 | Walk-forward / Monte-Carlo | `Backtester.walkForward` / `monteCarlo` | **Done** |
 | Angular overlays | `price-levels` + confluence fetch | **Done** — OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
-| DXY SMT | — | **Still deferred** (needs DXY bars) |
+| DXY SMT | `engine/smt/SmtDetector.java` | **Done** — DXY bars via `MarketDataService`; soft-fail when missing |
 
 **Rule for Cursor:** Prefer extending existing classes and models (`IctSnapshot`, `GannSnapshot`, `ConfluenceDecision`, `RiskVerdict`) over greenfield rewrites.
 
@@ -380,9 +380,9 @@ Optional overlay: 3 / 7 / 14 / 21 / 30 / 60 / 90 calendar or trading-day cycles 
 - Spike ≥ 1.5–1.8× average → confirms displacement.  
 - Climax volume at swing extremes → optional exhaustion filter.
 
-### 4.2 DXY / SMT (Future)
+### 4.2 DXY / SMT
 
-Inverse correlation: gold strength often when DXY weakens. Store DXY bars; detect divergence vs XAUUSD structure (SMT).
+Inverse correlation: gold strength often when DXY weakens. `MarketDataService.bars("DXY", tf)` stores DXY OHLC; `SmtDetector` compares last two swing highs/lows on M15 (fallback H1) vs XAUUSD structure. Wired into `ConfluenceEngine` as soft score (+1 aligned, −1 divergent); missing DXY data fails soft (`NO_DXY_DATA`).
 
 ### 4.3 News Blackout
 
