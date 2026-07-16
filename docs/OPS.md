@@ -6,7 +6,7 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 - **Arch:** `agents/pre-work/02-architecture.md`  
 - **Deep algos:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md`  
 - **API port:** `3340` (DEV) · **DB:** `app_trading_portal` schema `dev` · **CSS clientId:** `trading-portal`  
-- **Version:** `0.3.0-SNAPSHOT` (engine-depth wave; paper-only; P5 HOLD)
+- **Version:** `0.3.0` · paper F/G · P5 coded but **fail-closed** by default  
 
 ---
 
@@ -241,11 +241,19 @@ powershell -File scripts\check-fleet.ps1 -WithAuth
 
 Weights are versioned via `trading.confluence.weights-version` (default `v1`). Bump on any change.
 
-## 10. Live execution
+## 10. Live execution (P5 micro)
 
-**Absent / hard-disabled.** No broker adapter is wired. `trading.exec.live-enabled=false` is a guard
-flag only; there is no code path it enables. Live routing requires explicit **user GO**
-(`agents/hires/P5-MICRO-LIVE-HOLD.md`) after PREPROD soak.
+**Coded** under `com.delena.tradingportal.live` · **default OFF**. See `agents/hires/P5-MICRO-LIVE.md`.
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/live/gate` | Gate verdict (live flag, kill switch, profile, broker) |
+| `POST /api/live/confirm` | Open `LIVE_OPEN` micro position if gate ok |
+| `GET/POST /api/ops/kill-switch` | Engage/clear kill switch (`engaged` bool) |
+
+Arm DEV only: `live-enabled=true` + `broker=sim` + clear kill switch. Never enable on F/G.
+
+**Hard-disabled on preprod/prod:** `trading.exec.live-enabled=false`, empty `allowed-profiles`, `mt5-allow-send=false`.
 
 ## 11. Reset seed / recompute
 

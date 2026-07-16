@@ -59,9 +59,20 @@ public class TradingProperties {
         this.style = style != null ? style : TradingStyle.DAY;
     }
 
-    /** Live-execution guard. There is no live adapter in this slice; this must stay false. */
+    /** Live-execution guard + P5 micro settings. Defaults keep live off everywhere. */
     public static class Exec {
         private boolean liveEnabled = false;
+        /** none | sim | mt5 — none fails closed even if liveEnabled. */
+        private String broker = "none";
+        /** Comma list of spring profiles allowed for live (default: dev only). */
+        private String allowedProfiles = "dev";
+        private double microMinLots = 0.01;
+        private double microMaxLots = 0.01;
+        private String mt5BridgeUrl = "";
+        /** Must be true AND bridge URL set for Mt5BridgeLiveBroker to POST. */
+        private boolean mt5AllowSend = false;
+        /** When true, A+ may auto-call live confirm after risk ok (still gated). Default OFF. */
+        private boolean autoConfirmAPlus = false;
 
         public boolean isLiveEnabled() {
             return liveEnabled;
@@ -69,6 +80,62 @@ public class TradingProperties {
 
         public void setLiveEnabled(boolean liveEnabled) {
             this.liveEnabled = liveEnabled;
+        }
+
+        public String getBroker() {
+            return broker;
+        }
+
+        public void setBroker(String broker) {
+            this.broker = broker != null ? broker : "none";
+        }
+
+        public String getAllowedProfiles() {
+            return allowedProfiles;
+        }
+
+        public void setAllowedProfiles(String allowedProfiles) {
+            this.allowedProfiles = allowedProfiles != null ? allowedProfiles : "dev";
+        }
+
+        public double getMicroMinLots() {
+            return microMinLots;
+        }
+
+        public void setMicroMinLots(double microMinLots) {
+            this.microMinLots = microMinLots;
+        }
+
+        public double getMicroMaxLots() {
+            return microMaxLots;
+        }
+
+        public void setMicroMaxLots(double microMaxLots) {
+            this.microMaxLots = microMaxLots;
+        }
+
+        public String getMt5BridgeUrl() {
+            return mt5BridgeUrl;
+        }
+
+        public void setMt5BridgeUrl(String mt5BridgeUrl) {
+            this.mt5BridgeUrl = mt5BridgeUrl != null ? mt5BridgeUrl : "";
+        }
+
+        public boolean isMt5AllowSend() {
+            return mt5AllowSend;
+        }
+
+        public void setMt5AllowSend(boolean mt5AllowSend) {
+            this.mt5AllowSend = mt5AllowSend;
+        }
+
+        public boolean isAutoConfirmAPlus() {
+            return autoConfirmAPlus;
+        }
+
+        public void setAutoConfirmAPlus(boolean autoConfirmAPlus) {
+            this.autoConfirmAPlus = autoConfirmAPlus;
         }
     }
 

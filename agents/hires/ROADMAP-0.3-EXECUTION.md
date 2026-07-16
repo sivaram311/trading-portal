@@ -14,7 +14,7 @@
 | 3 | Observability harden | backend+ops | Fleet under real MT5 | none | **done** |
 | 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | **done** |
 | 5 | Engine depth | engines | Deep-algo + SMT 2026-07-17 | none | **done** — tagged `v0.3.0` paper F/G |
-| 6 | P5 micro-live | — | Exact phrase: `GO micro-live P5 on DEV only` | **blocked** | HOLD |
+| 6 | P5 micro-live | live | Coded DEV-gated; default fail-closed | paper→micro | **coded** — see `P5-MICRO-LIVE.md`; F/G stay `live-enabled=false` |
 
 ## MUST_NOT
 

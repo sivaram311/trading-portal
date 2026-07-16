@@ -68,6 +68,10 @@ public class OpsService {
 
     /** Aggregated operator status: soak + OHLC freshness + ingest probe + live-guard. */
     public FleetStatus status() {
+        return status(true, "KILL_SWITCH");
+    }
+
+    public FleetStatus status(boolean killSwitchEngaged, String liveGateDenyReason) {
         Instant now = Instant.now();
         SoakMetrics soak = soak();
         WeightsAudit weights = weights();
@@ -80,7 +84,6 @@ public class OpsService {
             Instant latest = top.map(OhlcCandleEntity::getTs).orElse(null);
             Long ageSec = latest == null ? null : Duration.between(latest, now).getSeconds();
             boolean stale = count == 0 || ageSec == null || ageSec > staleAfter;
-            // D1/H4 naturally older — only flag M1/M5/M15/H1 as stale for fleet status
             if (List.of("M1", "M5", "M15", "H1").contains(tf) && stale) {
                 anyStale = true;
             }
@@ -96,8 +99,10 @@ public class OpsService {
                 : (!ingest.reachable() && !props.getOps().getIngestHealthUrl().isBlank()) ? "WARN"
                 : anyStale ? "WARN"
                 : "OK";
-        return new FleetStatus(now, level, liveEnabled, soak, weights, ohlc, latestDecision, ingest,
-                props.getOps().getIngestHealthUrl(), staleAfter);
+        return new FleetStatus(now, level, liveEnabled, killSwitchEngaged, liveGateDenyReason,
+                soak, weights, ohlc, latestDecision, ingest,
+                props.getOps().getIngestHealthUrl(), staleAfter,
+                props.getExec().getBroker(), props.getExec().getAllowedProfiles());
     }
 
     private IngestProbe probeIngest() {
@@ -143,8 +148,11 @@ public class OpsService {
     public record IngestProbe(boolean configured, boolean reachable, Integer httpStatus, String detail) {
     }
 
-    public record FleetStatus(Instant checkedAt, String level, boolean liveEnabled, SoakMetrics soak,
-                              WeightsAudit weights, List<OhlcTfStatus> ohlc, LatestDecision latestDecision,
-                              IngestProbe ingest, String ingestHealthUrl, long ohlcStaleAfterSeconds) {
+    public record FleetStatus(Instant checkedAt, String level, boolean liveEnabled,
+                              boolean killSwitchEngaged, String liveGateDenyReason,
+                              SoakMetrics soak, WeightsAudit weights, List<OhlcTfStatus> ohlc,
+                              LatestDecision latestDecision, IngestProbe ingest,
+                              String ingestHealthUrl, long ohlcStaleAfterSeconds,
+                              String liveBroker, String liveAllowedProfiles) {
     }
 }
