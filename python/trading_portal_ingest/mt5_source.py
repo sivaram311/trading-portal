@@ -7,12 +7,21 @@ when the package or the terminal isn't available — per hire brief:
 ingest worker never fabricates data to paper over a missing terminal —
 matches the "ingest fails closed" RISK in `agents/hires/GROK-DECISION-001.md`.
 
+``initialize()`` runs in an **isolated subprocess** with a hard timeout
+(default 10s via ``INGEST_MT5_INIT_TIMEOUT_SECONDS``). MT5 IPC hangs freeze
+the entire Python process (even daemon threads), so subprocess isolation is
+required — the parent never calls ``mt5.initialize()`` directly.
+
 Pattern references (ideas/formulas only, not a fork):
 ``E:\\Source\\grok_dev\\python\\mt5_xauusd\\mt5_client.py``.
 """
 from __future__ import annotations
 
+import json
 import logging
+import os
+import subprocess
+import sys
 from datetime import datetime, timezone
 
 from .config import Settings
@@ -21,8 +30,6 @@ from .timeutil import utc_to_ny
 
 logger = logging.getLogger(__name__)
 
-# MT5 python API returns empty arrays when copy_rates_from count is too large
-# (observed upstream: 100000 -> 0 bars). Mirrors grok_dev's mt5_client.py lesson.
 MAX_MT5_COPY_COUNT = 10000
 
 COMMON_MT5_PATHS = [
@@ -32,8 +39,6 @@ COMMON_MT5_PATHS = [
     r"E:\MT5\terminal64.exe",
 ]
 
-_TIMEFRAME_NAME_TO_MT5: dict[str, int] | None = None
-
 
 class Mt5Unavailable(RuntimeError):
     """Raised whenever the mt5 mode cannot proceed — package missing, terminal
@@ -41,20 +46,51 @@ class Mt5Unavailable(RuntimeError):
     as a hard failure, not fall back to synthetic data."""
 
 
-def _resolve_timeframe_map():
-    global _TIMEFRAME_NAME_TO_MT5
-    if _TIMEFRAME_NAME_TO_MT5 is None:
-        import MetaTrader5 as mt5  # noqa: local import — see module docstring
+def mt5_init_timeout_seconds() -> float:
+    raw = os.environ.get("INGEST_MT5_INIT_TIMEOUT_SECONDS", "10").strip()
+    try:
+        return max(1.0, float(raw))
+    except ValueError:
+        return 10.0
 
-        _TIMEFRAME_NAME_TO_MT5 = {
-            "M1": mt5.TIMEFRAME_M1,
-            "M5": mt5.TIMEFRAME_M5,
-            "M15": mt5.TIMEFRAME_M15,
-            "H1": mt5.TIMEFRAME_H1,
-            "H4": mt5.TIMEFRAME_H4,
-            "D1": mt5.TIMEFRAME_D1,
-        }
-    return _TIMEFRAME_NAME_TO_MT5
+
+def resolve_mt5_path() -> str | None:
+    """Return explicit ``INGEST_MT5_PATH`` or the first existing common path."""
+    explicit = os.environ.get("INGEST_MT5_PATH", "").strip()
+    if explicit:
+        return explicit
+    for candidate in COMMON_MT5_PATHS:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+
+def _isolated_cmd(*args: str) -> list[str]:
+    return [sys.executable, "-m", "trading_portal_ingest.mt5_isolated", *args]
+
+
+def _run_isolated(args: list[str], *, timeout: float) -> dict:
+    try:
+        proc = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        raise Mt5Unavailable(f"MT5 subprocess timed out after {timeout}s (IPC hang)") from None
+
+    if not proc.stdout.strip():
+        detail = proc.stderr.strip() or f"MT5 subprocess exited {proc.returncode} with no output"
+        raise Mt5Unavailable(detail)
+
+    try:
+        payload = json.loads(proc.stdout)
+    except json.JSONDecodeError as exc:
+        raise Mt5Unavailable(f"MT5 subprocess returned invalid JSON: {proc.stdout[:200]!r}") from exc
+
+    return payload
 
 
 def check_available() -> tuple[bool, str]:
@@ -63,37 +99,21 @@ def check_available() -> tuple[bool, str]:
     health endpoint can report status without crashing the process.
     """
     try:
-        import MetaTrader5 as mt5
+        import MetaTrader5 as mt5  # noqa: F401 - probe importability
     except ImportError as exc:
         return False, f"MetaTrader5 package not installed: {exc}"
 
+    path = resolve_mt5_path() or ""
+    timeout = mt5_init_timeout_seconds()
     try:
-        ok = mt5.initialize()
-    except Exception as exc:  # pragma: no cover - defensive
-        return False, f"MetaTrader5.initialize() raised: {exc}"
+        payload = _run_isolated(_isolated_cmd("probe", path), timeout=timeout)
+    except Mt5Unavailable as exc:
+        logger.warning("%s — treating as unavailable", exc)
+        return False, str(exc)
 
-    if not ok:
-        err = mt5.last_error()
-        return False, f"MetaTrader5.initialize() failed: {err}"
-
-    try:
-        mt5.shutdown()
-    except Exception:
-        pass
-    return True, "MT5 terminal reachable"
-
-
-def _ensure_initialized(path: str | None = None) -> None:
-    import MetaTrader5 as mt5
-
-    kwargs = {"path": path} if path else {}
-    if not mt5.initialize(**kwargs):
-        err = mt5.last_error()
-        raise Mt5Unavailable(
-            f"Failed to initialize MetaTrader5 terminal (last_error={err}). "
-            "Ensure MT5 is installed, running, and logged in; "
-            "'Allow DLL imports' enabled in Tools -> Options -> Expert Advisors."
-        )
+    ok = bool(payload.get("ok"))
+    detail = str(payload.get("detail", "unknown"))
+    return ok, detail
 
 
 def fetch_completed_bars(settings: Settings, timeframe: str, count: int) -> list[Bar]:
@@ -103,54 +123,44 @@ def fetch_completed_bars(settings: Settings, timeframe: str, count: int) -> list
     reachable, symbol not selectable, or empty response.
     """
     try:
-        import MetaTrader5 as mt5
+        import MetaTrader5 as mt5  # noqa: F401 - probe importability
     except ImportError as exc:
         raise Mt5Unavailable(
             "MetaTrader5 package is not installed in this environment. "
             "Install with `pip install MetaTrader5` (Windows only) or use --mode seed."
         ) from exc
 
-    _ensure_initialized()
-    try:
-        if not mt5.symbol_select(settings.symbol, True):
-            raise Mt5Unavailable(f"MT5 could not select symbol {settings.symbol!r} (check Market Watch).")
+    path = resolve_mt5_path() or ""
+    timeout = mt5_init_timeout_seconds() + 30.0
+    payload = _run_isolated(
+        _isolated_cmd("fetch", settings.symbol, timeframe, str(count), path),
+        timeout=timeout,
+    )
 
-        tf_map = _resolve_timeframe_map()
-        mt5_tf = tf_map[timeframe]
-        n = min(count, MAX_MT5_COPY_COUNT)
-        # position 0 = most recent (currently forming) bar; fetch n+1 and drop it.
-        rates = mt5.copy_rates_from_pos(settings.symbol, mt5_tf, 0, n + 1)
-        if rates is None or len(rates) == 0:
-            raise Mt5Unavailable(
-                f"MT5 returned no rates for {settings.symbol} {timeframe} (last_error={mt5.last_error()})."
-            )
+    if not payload.get("ok"):
+        raise Mt5Unavailable(str(payload.get("detail", "MT5 fetch failed")))
 
-        bars: list[Bar] = []
-        # Drop the last element (index -1 by MT5 ordering is oldest->newest here,
-        # so the *last* row is the currently-forming bar) — never store it.
-        for row in rates[:-1] if len(rates) > 1 else []:
-            ts_utc = datetime.fromtimestamp(int(row["time"]), tz=timezone.utc)
-            bars.append(
-                Bar(
-                    symbol=settings.symbol,
-                    timeframe=timeframe,
-                    ts_utc=ts_utc,
-                    ny_time=utc_to_ny(ts_utc),
-                    open=float(row["open"]),
-                    high=float(row["high"]),
-                    low=float(row["low"]),
-                    close=float(row["close"]),
-                    volume=float(row["tick_volume"]),
-                    broker_time=None,
-                    source="mt5",
-                )
+    bars: list[Bar] = []
+    for row in payload.get("bars", []):
+        ts_utc = datetime.fromisoformat(str(row["ts_utc"]))
+        if ts_utc.tzinfo is None:
+            ts_utc = ts_utc.replace(tzinfo=timezone.utc)
+        bars.append(
+            Bar(
+                symbol=settings.symbol,
+                timeframe=timeframe,
+                ts_utc=ts_utc,
+                ny_time=utc_to_ny(ts_utc),
+                open=float(row["open"]),
+                high=float(row["high"]),
+                low=float(row["low"]),
+                close=float(row["close"]),
+                volume=float(row["volume"]),
+                broker_time=None,
+                source="mt5",
             )
-        return bars
-    finally:
-        try:
-            mt5.shutdown()
-        except Exception:
-            pass
+        )
+    return bars
 
 
 def run_mt5(conn, settings: Settings, bars_per_timeframe: int = 500) -> dict[str, int]:

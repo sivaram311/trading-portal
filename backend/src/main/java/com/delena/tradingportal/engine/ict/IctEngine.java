@@ -23,6 +23,15 @@ public class IctEngine {
 
     public IctSnapshot compute(List<OhlcBar> barsH1, List<OhlcBar> barsM15, List<OhlcBar> barsM5,
                                Instant asof, IctConfig cfg) {
+        return compute(null, barsH1, barsM15, barsM5, asof, cfg);
+    }
+
+    /**
+     * ICT compute with optional H4 bars for HTF dealing range / bias. When H4 is present and non-empty
+     * after {@code asof} filtering, it is preferred over H1, then M15.
+     */
+    public IctSnapshot compute(List<OhlcBar> barsH4, List<OhlcBar> barsH1, List<OhlcBar> barsM15,
+                               List<OhlcBar> barsM5, Instant asof, IctConfig cfg) {
         // Gate: every bar must carry ny_time; otherwise fail closed with DATA_GAP (never default to UTC).
         if (barsM15 == null || barsM15.isEmpty() || !allHaveNyTime(barsM15)) {
             return empty(asof, List.of("DATA_GAP"));
@@ -30,6 +39,7 @@ public class IctEngine {
 
         List<OhlcBar> m15 = upTo(barsM15, asof);
         List<OhlcBar> h1 = upTo(barsH1, asof);
+        List<OhlcBar> h4 = upTo(barsH4, asof);
         if (m15.size() < 5) {
             return empty(asof, List.of("DATA_GAP"));
         }
@@ -40,8 +50,8 @@ public class IctEngine {
             reasons.add("KZ_" + killzone);
         }
 
-        // --- HTF dealing range + premium/discount + bias (H1) ---
-        List<OhlcBar> htfSource = h1.isEmpty() ? m15 : h1;
+        // --- HTF dealing range + premium/discount + bias (H4 > H1 > M15) ---
+        List<OhlcBar> htfSource = !h4.isEmpty() ? h4 : (h1.isEmpty() ? m15 : h1);
         double dealingHigh = htfSource.stream().mapToDouble(OhlcBar::high).max().orElse(0);
         double dealingLow = htfSource.stream().mapToDouble(OhlcBar::low).min().orElse(0);
         double eq = (dealingHigh + dealingLow) / 2.0;
@@ -98,7 +108,7 @@ public class IctEngine {
         }
         var zones = new IctSnapshot.Zones(obs, fvgs, activeEntry);
 
-        // HTF conflict flag (§5.3/§7): structure direction opposes H1 bias.
+        // HTF conflict flag (§5.3/§7): structure direction opposes HTF bias.
         if (!"none".equals(structure.direction()) && !"neutral".equals(htfBias)
                 && !structure.direction().equals(htfBias)) {
             reasons.add("HTF_CONFLICT");

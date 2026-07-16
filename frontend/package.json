@@ -1,6 +1,6 @@
 {
   "name": "trading-portal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Trading Portal operator UI — ICT + Gann confluence, paper-first (Angular 18 + Tailwind).",
   "private": true,
   "license": "UNLICENSED",

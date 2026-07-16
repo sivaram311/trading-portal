@@ -55,6 +55,20 @@ class ConfluenceEngineTest {
         assertFalse(d.invalidIf().isEmpty(), "actionable mode must carry mandatory invalidation");
     }
 
+    @Test
+    void newsVetoYieldsFailClosedDeny() {
+        ConfluenceDecision d = engine.decide(ictShortReversal(), gannFadeShort(), asof, true, "v1");
+
+        assertEquals("NONE", d.mode());
+        assertEquals("F", d.grade());
+        assertEquals("flat", d.direction());
+        assertEquals("deny", d.automation());
+        assertTrue(d.reasons().contains("NEWS_VETO"));
+        RiskVerdict fakeOkRisk = new RiskVerdict(d.id(), asof, true, 1.0, 0.5, 0, 0,
+                List.of(), new RiskVerdict.Checks(true, true, true, true, true, true, true));
+        assertFalse(PaperDecisionPolicy.isConfirmable(d, fakeOkRisk));
+    }
+
     // ---- fixtures ----------------------------------------------------------
 
     private IctSnapshot ictShortReversal() {

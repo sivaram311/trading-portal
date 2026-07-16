@@ -35,6 +35,7 @@ cd E:\MyWorkspace\trading-portal\python
 .\scripts\run-ingest-dev.ps1 -Mode check-mt5        # probe MT5, no DB
 .\scripts\run-ingest-dev.ps1 -Mode mt5              # one-shot MT5 pull (fails clearly if no terminal)
 .\scripts\run-ingest-dev.ps1 -Mode mt5 -ExtraArgs '--daemon'
+.\scripts\run-ingest-dev.ps1 -Mode mt5 -ExtraArgs '--daemon --health'   # daemon + :3342/health
 .\scripts\run-ingest-dev.ps1 -Mode seed -ExtraArgs '--health'   # also serve :3342/health
 ```
 
@@ -60,7 +61,15 @@ $env:POSTGRES_PORT = '5432'
 .\.venv\Scripts\python.exe -m trading_portal_ingest mt5 --daemon --interval-seconds 60
 ```
 
-For PREPROD/PROD, set `INGEST_ENV=preprod|prod` and the matching
+For PREPROD/PROD, use the matching runner scripts (health ports `4342` /
+`5342`):
+
+```powershell
+.\scripts\run-ingest-preprod.ps1 -Mode mt5 -ExtraArgs '--daemon --health'
+.\scripts\run-ingest-prod.ps1 -Mode mt5 -ExtraArgs '--daemon --health'
+```
+
+Or set `INGEST_ENV=preprod|prod` manually and the matching
 `TRADING_PORTAL_ROLE_<ENV>` / `TRADING_PORTAL_ROLE_<ENV>_PASSWORD` (roles
 already reserved per `agents/pre-work/02-architecture.md` §4). Do **not**
 run against F:/G: except from the correct env root per machine rules.
@@ -70,10 +79,13 @@ run against F:/G: except from the correct env root per machine rules.
 ## Verified run (this hire, 2026-07-15, DEV)
 
 - **MT5 terminal availability on this box: NOT available.** `MetaTrader5`
-  Python package (`5.0.5735`) is installed, but `mt5.initialize()` returns
-  `(-10005, 'IPC timeout')` — no MT5 terminal process running/reachable.
-  `mt5` mode correctly fails closed with a clear error and exit code `2`;
-  it never writes fake rows under the `mt5` label.
+  Python package (`5.0.5735`) is installed, but `mt5.initialize()` hangs on
+  IPC when no terminal is running. Init is now wrapped with a **10s thread
+  timeout** (`INGEST_MT5_INIT_TIMEOUT_SECONDS`); `check-mt5` and `mt5` mode
+  return quickly with a clear timeout/unavailable message instead of hanging.
+  `mt5` mode correctly fails closed with exit code `2`; daemon mode logs the
+  error, updates health `ingest.last_error`, sleeps, and retries (unless
+  `--strict`).
 - `seed` mode: verified inserting 500 bars each for `M1/M5/M15/H1` into
   `dev.ohlc_candle` (2000 rows), idempotent on re-run (upsert, no
   duplicates for the same key), and 100% populated `ny_time`.
@@ -96,7 +108,9 @@ logged in).
 |----------|---------|-------|
 | `INGEST_ENV` | `dev` | `dev` \| `preprod` \| `prod` — picks the Postgres schema + role env var names. E: boxes must use `dev` only. |
 | `INGEST_SYMBOL` | `XAUUSD` | Only XAUUSD is in MVP scope (`GROK-DECISION-001`). |
-| `INGEST_TIMEFRAMES` | `M1,M5,M15,H1` | Comma list; allowed: `M1,M5,M15,H1,H4,D1`. |
+| `INGEST_TIMEFRAMES` | `M1,M5,M15,H1,H4,D1` | Comma list; allowed: `M1,M5,M15,H1,H4,D1`. |
+| `INGEST_MT5_INIT_TIMEOUT_SECONDS` | `10` | Hard timeout for `mt5.initialize()` probe/fetch — prevents IPC hangs. |
+| `INGEST_MT5_PATH` | *(auto)* | Optional path to `terminal64.exe`; auto-detects common install paths when unset. |
 | `INGEST_SEED_BARS` | `500` | Bars per timeframe for `seed` mode. |
 | `INGEST_SEED_RANDOM_STATE` | `42` | Seed for the synthetic random walk (reproducible runs). |
 | `INGEST_HEALTH_ENABLED` | `true` | Set `false` to disable the health server entirely. |
@@ -154,14 +168,21 @@ When the **backend** hire lands its Flyway migration for `ohlc_candle`:
 ## MT5 mode details
 
 - Uses the official `MetaTrader5` Python package (Windows only).
-- Auto-initializes the default/installed terminal (no path configured by
-  default); set `MT5_PATH` env var support can be added if a non-standard
-  install path is needed (not required on this box — see "Verified run").
+- **`mt5.initialize()` never blocks the process indefinitely.** Init runs in an
+  **isolated subprocess** with a hard timeout (default **10s**,
+  `INGEST_MT5_INIT_TIMEOUT_SECONDS`). MT5 IPC hangs freeze the whole Python
+  interpreter (even background threads), so subprocess isolation is required.
+  On timeout, `check-mt5` returns unavailable and `mt5` mode raises
+  `Mt5Unavailable` — fail closed, no synthetic fallback.
+- Terminal path: set `INGEST_MT5_PATH` to `terminal64.exe`, or rely on auto-detect
+  of common install locations (`C:\Program Files\MetaTrader 5\...`, etc.).
 - Always drops the currently-forming bar — only **completed** candles are
   written (mirrors the lesson in
   `E:\Source\grok_dev\python\mt5_xauusd\mt5_client.py`).
-- `--daemon --interval-seconds N` polls in a loop; each iteration failure
-  is logged and retried on the next tick rather than crashing the daemon.
+- `--daemon --interval-seconds N` polls in a loop. When MT5 is unavailable,
+  each iteration logs the error, updates health `ingest.last_error`, sleeps,
+  and **continues** (no crash-loop exit). Pass `--strict` to exit non-zero on
+  the first failure instead. One-shot mode (no `--daemon`) still exits `2`.
 - **Never fabricates bars when MT5 is unavailable.** `Mt5Unavailable` is
   raised and surfaces as a non-zero exit / logged error — the health
   endpoint's `ingest.last_error` field reflects this too.
@@ -179,7 +200,7 @@ Flask dependency) returns:
   "app": "trading-portal-python-ingest",
   "env": "dev",
   "symbol": "XAUUSD",
-  "timeframes": ["M1", "M5", "M15", "H1"],
+  "timeframes": ["M1", "M5", "M15", "H1", "H4", "D1"],
   "db": {"ok": true, "detail": "ok"},
   "ingest": {"last_mode": "seed", "last_run_at": "...", "last_result": {"M1": 500}, "last_error": null},
   "checked_at": "..."
@@ -209,11 +230,16 @@ python/
     ddl.py              # bootstrap create-if-not-exists DDL
     db.py               # connection + upsert helpers
     seed.py             # synthetic bar generator
-    mt5_source.py       # MetaTrader5 client wrapper (fails clearly)
+    mt5_source.py       # MetaTrader5 client wrapper (subprocess + timeout)
+    mt5_isolated.py     # child-process MT5 probe/fetch (IPC hang isolation)
     timeutil.py         # UTC <-> America/New_York (DST-aware)
     health.py           # stdlib http.server /health endpoint
   scripts/
-    run-ingest-dev.ps1  # DEV convenience runner
+    run-ingest-dev.ps1      # DEV convenience runner
+    run-ingest-preprod.ps1  # PREPROD runner (:4342 health)
+    run-ingest-prod.ps1     # PROD runner (:5342 health)
+  tests/
+    test_mt5_init_timeout.py  # mock timeout path (unittest)
   requirements.txt
   README.md
 ```

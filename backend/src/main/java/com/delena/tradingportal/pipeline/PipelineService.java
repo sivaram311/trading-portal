@@ -13,8 +13,11 @@ import com.delena.tradingportal.market.MarketDataService;
 import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.GannSnapshot;
 import com.delena.tradingportal.model.IctSnapshot;
+import com.delena.tradingportal.model.OhlcBar;
 import com.delena.tradingportal.model.PaperJournalEntry;
 import com.delena.tradingportal.model.RiskVerdict;
+import com.delena.tradingportal.news.NewsCalendarService;
+import com.delena.tradingportal.paper.PaperTradingService;
 import com.delena.tradingportal.persistence.ConfluenceDecisionEntity;
 import com.delena.tradingportal.persistence.ConfluenceDecisionRepository;
 import com.delena.tradingportal.persistence.GannSnapshotEntity;
@@ -44,12 +47,15 @@ import java.util.UUID;
 public class PipelineService {
 
     private static final Logger log = LoggerFactory.getLogger(PipelineService.class);
+    private static final String AUTO_CONFIRM_ACTOR = "system:auto-confirm-a-plus";
 
     private final MarketDataService market;
     private final IctEngine ictEngine;
     private final GannEngine gannEngine;
     private final ConfluenceEngine confluenceEngine;
     private final RiskGate riskGate;
+    private final NewsCalendarService newsCalendar;
+    private final PaperTradingService paperTrading;
     private final ConfluenceDecisionRepository decisionRepo;
     private final IctSnapshotRepository ictRepo;
     private final GannSnapshotRepository gannRepo;
@@ -60,6 +66,7 @@ public class PipelineService {
 
     public PipelineService(MarketDataService market, IctEngine ictEngine, GannEngine gannEngine,
                            ConfluenceEngine confluenceEngine, RiskGate riskGate,
+                           NewsCalendarService newsCalendar, PaperTradingService paperTrading,
                            ConfluenceDecisionRepository decisionRepo, IctSnapshotRepository ictRepo,
                            GannSnapshotRepository gannRepo, RiskVerdictRepository riskRepo,
                            PaperJournalRepository journalRepo, Json json, TradingProperties props) {
@@ -68,6 +75,8 @@ public class PipelineService {
         this.gannEngine = gannEngine;
         this.confluenceEngine = confluenceEngine;
         this.riskGate = riskGate;
+        this.newsCalendar = newsCalendar;
+        this.paperTrading = paperTrading;
         this.decisionRepo = decisionRepo;
         this.ictRepo = ictRepo;
         this.gannRepo = gannRepo;
@@ -80,28 +89,50 @@ public class PipelineService {
     /** Recompute the latest decision from stored OHLC and persist all artifacts. */
     @Transactional
     public Optional<ConfluenceDecision> recompute() {
-        var m5 = market.bars("M5");
-        var m15 = market.bars("M15");
-        var h1 = market.bars("H1");
+        return recompute(Instant.now());
+    }
+
+    /**
+     * Recompute a decision using OHLC bars with {@code ts <= asof}. Used for journal replay and
+     * point-in-time ops. Does not invent OHLC — only filters stored candles.
+     */
+    @Transactional
+    public Optional<ConfluenceDecision> recompute(Instant asof) {
+        var m5 = market.barsUpTo("M5", asof);
+        var m15 = market.barsUpTo("M15", asof);
+        var h1 = market.barsUpTo("H1", asof);
+        var h4 = market.barsUpTo("H4", asof);
+        var d1 = market.barsUpTo("D1", asof);
         if (m5.isEmpty() && m15.isEmpty()) {
-            log.warn("recompute skipped: no OHLC candles present");
+            log.warn("recompute skipped: no OHLC candles present up to {}", asof);
             return Optional.empty();
         }
-        Instant asof = latestTs(m5, m15);
+        Instant effectiveAsof = latestTs(m5, m15, asof);
 
-        IctSnapshot ict = ictEngine.compute(h1, m15, m5, asof, IctConfig.defaults());
-        GannSnapshot gann = gannEngine.compute(m5, List.of(), asof, GannConfig.defaults(), "NY_OPEN");
-        ConfluenceDecision decision = confluenceEngine.decide(ict, gann, asof, false,
+        boolean newsVeto = newsCalendar.isVeto(effectiveAsof);
+        IctSnapshot ict = ictEngine.compute(h4, h1, m15, m5, effectiveAsof, IctConfig.defaults());
+        GannSnapshot gann = gannEngine.compute(m5, d1, effectiveAsof, GannConfig.defaults(), "NY_OPEN");
+        ConfluenceDecision decision = confluenceEngine.decide(ict, gann, effectiveAsof, newsVeto,
                 props.getConfluence().getWeightsVersion());
 
         int openPositions = (int) journalRepo.countByStatus("PAPER_OPEN");
         RiskVerdict risk = riskGate.verdict(decision, openPositions, 0.0);
 
         persist(ict, gann, decision, risk);
-        log.info("Decision {} grade={} mode={} dir={} agreement={} riskOk={} (ictQ={}, gannQ={})",
+        maybeAutoConfirm(decision, risk);
+        log.info("Decision {} grade={} mode={} dir={} agreement={} riskOk={} newsVeto={} (ictQ={}, gannQ={})",
                 decision.id(), decision.grade(), decision.mode(), decision.direction(),
-                decision.agreement(), risk.ok(), ict.quality(), gann.quality());
+                decision.agreement(), risk.ok(), newsVeto, ict.quality(), gann.quality());
         return Optional.of(decision);
+    }
+
+    private void maybeAutoConfirm(ConfluenceDecision decision, RiskVerdict risk) {
+        if (!props.getPaper().isAutoConfirmAPlus()) {
+            return;
+        }
+        if (paperTrading.autoOpenIfEligible(decision, risk, AUTO_CONFIRM_ACTOR)) {
+            log.info("A+ auto-confirm opened paper for decision {}", decision.id());
+        }
     }
 
     private void persist(IctSnapshot ict, GannSnapshot gann, ConfluenceDecision d, RiskVerdict risk) {
@@ -130,9 +161,9 @@ public class PipelineService {
                 d.weightsVersion(), d.automation(), d.ts(), null, null, null, json.write(entry)));
     }
 
-    private static Instant latestTs(List<com.delena.tradingportal.model.OhlcBar> m5,
-                                    List<com.delena.tradingportal.model.OhlcBar> m15) {
-        List<com.delena.tradingportal.model.OhlcBar> src = m5.isEmpty() ? m15 : m5;
-        return src.get(src.size() - 1).ts();
+    private static Instant latestTs(List<OhlcBar> m5, List<OhlcBar> m15, Instant ceiling) {
+        List<OhlcBar> src = m5.isEmpty() ? m15 : m5;
+        Instant barTs = src.get(src.size() - 1).ts();
+        return barTs.isAfter(ceiling) ? ceiling : barTs;
     }
 }

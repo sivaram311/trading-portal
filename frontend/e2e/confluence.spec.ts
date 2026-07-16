@@ -3,11 +3,13 @@ import { test, expect } from '@playwright/test';
 /**
  * Device Lab E2E — Trading Portal
  * Viewport projects: phone 360×780 · desktop 1280×800 · tablet 800×1280
- * Login uses CSS DEV :9000 with clientId=trading-portal (CONSCIOUS #18: localhost-only DEV documented — no public hostname yet).
+ * Login: CSS via same-origin `/auth` (or :9000 on loopback). CONSCIOUS #18: for auth gate use
+ * `TP_BASE_URL=https://trading-portal-dev.delena.buzz` (public DEV host), not only 127.0.0.1.
  */
 
 const CSS_USER = process.env['TP_E2E_USER'] || 'admin';
-const CSS_PASS = process.env['TP_E2E_PASS'] || 'admin123';
+/** Prefer SoT `CSS_ADMIN_PASSWORD` via TP_E2E_PASS — legacy admin123 is rejected after password-align. */
+const CSS_PASS = process.env['TP_E2E_PASS'] || process.env['CSS_ADMIN_PASSWORD'] || 'admin123';
 
 async function loginViaCss(page: import('@playwright/test').Page) {
   await page.goto('/login');

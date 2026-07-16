@@ -1,7 +1,10 @@
 package com.delena.tradingportal.paper;
 
 import com.delena.tradingportal.common.Json;
+import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.PaperJournalEntry;
+import com.delena.tradingportal.model.RiskVerdict;
+import com.delena.tradingportal.paper.PaperDecisionPolicy;
 import com.delena.tradingportal.persistence.ConfluenceDecisionEntity;
 import com.delena.tradingportal.persistence.ConfluenceDecisionRepository;
 import com.delena.tradingportal.persistence.PaperJournalEntity;
@@ -65,16 +68,40 @@ public class PaperTradingService {
 
         PaperJournalEntity row = journalRepo.findTopByDecisionIdOrderByCreatedAtDesc(id)
                 .orElseThrow(() -> new NotFoundException("JOURNAL_NOT_FOUND", "No journal row for decision " + decisionId));
-        ensureActionable(row);
-
-        PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
-        Instant now = Instant.now();
-        double entryMid = round((current.entry().low() + current.entry().high()) / 2.0);
-        var paper = new PaperJournalEntry.Paper(now, null, entryMid, null, null, null, null, null);
-        PaperJournalEntry updated = withAction(current, "PAPER_OPEN", now, actor, note, paper);
-
-        applyUpdate(row, "PAPER_OPEN", now, actor, note, updated);
+        openPaperPosition(row, actor, note);
         return json.read(row.getPayload());
+    }
+
+    /**
+     * Auto-open paper for an A+ ALERTED decision when the pipeline flag is ON. Returns true when
+     * a PAPER_OPEN row was written. Never throws — pipeline must not fail on auto-confirm errors.
+     */
+    public boolean autoOpenIfEligible(ConfluenceDecision decision, RiskVerdict risk, String actor) {
+        if (decision == null || risk == null || !"A+".equals(decision.grade())) {
+            return false;
+        }
+        if (!PaperDecisionPolicy.isConfirmable(decision, risk)) {
+            return false;
+        }
+        if (journalRepo.countByStatus("PAPER_OPEN") >= 1) {
+            return false;
+        }
+        UUID id;
+        try {
+            id = UUID.fromString(decision.id());
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        PaperJournalEntity row = journalRepo.findTopByDecisionIdOrderByCreatedAtDesc(id).orElse(null);
+        if (row == null || !"ALERTED".equals(row.getStatus())) {
+            return false;
+        }
+        try {
+            openPaperPosition(row, actor, "A+ auto-confirm");
+            return true;
+        } catch (ConflictException e) {
+            return false;
+        }
     }
 
     @Transactional
@@ -131,6 +158,16 @@ public class PaperTradingService {
     }
 
     // ------------------------------------------------------------------ helpers
+
+    private void openPaperPosition(PaperJournalEntity row, String actor, String note) {
+        ensureActionable(row);
+        PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
+        Instant now = Instant.now();
+        double entryMid = round((current.entry().low() + current.entry().high()) / 2.0);
+        var paper = new PaperJournalEntry.Paper(now, null, entryMid, null, null, null, null, null);
+        PaperJournalEntry updated = withAction(current, "PAPER_OPEN", now, actor, note, paper);
+        applyUpdate(row, "PAPER_OPEN", now, actor, note, updated);
+    }
 
     private void ensureActionable(PaperJournalEntity row) {
         String s = row.getStatus();

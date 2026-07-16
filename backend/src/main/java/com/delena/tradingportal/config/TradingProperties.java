@@ -2,6 +2,12 @@ package com.delena.tradingportal.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
 /** Typed view of the {@code trading.*} configuration namespace. */
 @ConfigurationProperties(prefix = "trading")
 public class TradingProperties {
@@ -10,6 +16,8 @@ public class TradingProperties {
     private final Confluence confluence = new Confluence();
     private final Seed seed = new Seed();
     private final Security security = new Security();
+    private final Paper paper = new Paper();
+    private final News news = new News();
 
     public Exec getExec() {
         return exec;
@@ -25,6 +33,14 @@ public class TradingProperties {
 
     public Security getSecurity() {
         return security;
+    }
+
+    public Paper getPaper() {
+        return paper;
+    }
+
+    public News getNews() {
+        return news;
     }
 
     /** Live-execution guard. There is no live adapter in this slice; this must stay false. */
@@ -104,6 +120,88 @@ public class TradingProperties {
 
         public void setJwkSetUri(String jwkSetUri) {
             this.jwkSetUri = jwkSetUri;
+        }
+    }
+
+    /** Paper-trading operator policy flags. */
+    public static class Paper {
+        /** When true, ALERTED A+ decisions auto-confirm into PAPER_OPEN (default OFF). */
+        private boolean autoConfirmAPlus = false;
+
+        public boolean isAutoConfirmAPlus() {
+            return autoConfirmAPlus;
+        }
+
+        public void setAutoConfirmAPlus(boolean autoConfirmAPlus) {
+            this.autoConfirmAPlus = autoConfirmAPlus;
+        }
+    }
+
+    /**
+     * Configured news blackout windows. When {@code asof} falls inside any window,
+     * confluence receives a NEWS_VETO (fail-closed).
+     */
+    public static class News {
+        private List<BlackoutWindow> blackouts = new ArrayList<>();
+
+        public List<BlackoutWindow> getBlackouts() {
+            return blackouts;
+        }
+
+        public void setBlackouts(List<BlackoutWindow> blackouts) {
+            this.blackouts = blackouts != null ? blackouts : new ArrayList<>();
+        }
+    }
+
+    /**
+     * A blackout window: either absolute UTC instants ({@code start}/{@code end}) or a recurring
+     * NY-local time band on an optional weekday (null weekday = every day).
+     */
+    public static class BlackoutWindow {
+        private Instant start;
+        private Instant end;
+        private DayOfWeek weekday;
+        private LocalTime nyStart;
+        private LocalTime nyEnd;
+
+        public Instant getStart() {
+            return start;
+        }
+
+        public void setStart(Instant start) {
+            this.start = start;
+        }
+
+        public Instant getEnd() {
+            return end;
+        }
+
+        public void setEnd(Instant end) {
+            this.end = end;
+        }
+
+        public DayOfWeek getWeekday() {
+            return weekday;
+        }
+
+        public void setWeekday(DayOfWeek weekday) {
+            this.weekday = weekday;
+        }
+
+        public LocalTime getNyStart() {
+            return nyStart;
+        }
+
+        public void setNyStart(LocalTime nyStart) {
+            this.nyStart = nyStart;
+        }
+
+        public LocalTime getNyEnd() {
+            return nyEnd;
+        }
+
+        public void setNyEnd(LocalTime nyEnd) {
+            this.nyEnd = nyEnd;
         }
     }
 }

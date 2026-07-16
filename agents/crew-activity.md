@@ -4,6 +4,9 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
+| 2026-07-16 ~21:00 | e2e-public-dev (cursor) | Public DEV Device Lab (#18): `TP_BASE_URL=https://trading-portal-dev.delena.buzz`, Playwright slot claim/release, 9 tests | **3 pass / 6 fail** — login 401 (CSS creds/client); `/api/health` 502; unauth redirect OK; evidence `docs/E2E-PUBLIC-DEV-0.2.md` |
+| 2026-07-16 ~20:55 | python-ingest (cursor) | MT5 IPC hang fix: subprocess-isolated probe/fetch (`mt5_isolated.py`) with hard timeout (`INGEST_MT5_INIT_TIMEOUT_SECONDS`, default 10s); `INGEST_MT5_PATH` + H4/D1 default timeframes; daemon `--strict` + continue-on-unavailable; `run-ingest-{dev,preprod,prod}.ps1`; unit tests `tests/test_mt5_init_timeout.py`; README updated | `check-mt5` returns in ~5–10s (NOT reachable, IPC hang killed in child); tests 6/6 OK; DEV daemon: `.\scripts\run-ingest-dev.ps1 -Mode mt5 -ExtraArgs '--daemon --health'` |
+| 2026-07-16 ~20:50 | backend+engines (cursor) | Roadmap 0.2 B+C+D: H4/D1 in ICT+Gann pipeline; config news blackout→NEWS_VETO; `GET /api/ops/soak` + `GET /api/ops/weights` + `POST /api/ops/replay`; `trading.paper.auto-confirm-a-plus=false` + auto-open hook; `mvn test` green | paper-only; no commit |
 | 2026-07-15 ~13:20 | lead (cursor) | User GO: flip F/G IdP classic CSS→css-next (`:4910`/`:5910`); rebuild+redeploy F then G; evidence `css-next-flip/`; SIGN-OFF GO; tip on 0.1.0 (no patch bump) | F+G JWKS/health/login Bearer 200; push origin main |
 | 2026-07-15 ~10:45 | lead+promote crew | User-confirmed Q1+Q2: tagged `v0.1.0`, deployed F:4340/4341 + G:5340/5341, evidence GO, deps matrix updated | live smoke grade A both envs; paper-only |
 | 2026-07-15 ~10:33 | lead+user | Decision maker switch: user confirms from now; stop expecting Grok CLI GO | recorded in `agents/hires/DECISION-MAKER.md`; promote awaits user yes |
@@ -19,3 +22,5 @@ Append newest at top.
 | 2026-07-15 ~09:10 | grok (cursor-grok-4.5-high) | Sole decision `GROK-DECISION-001`: APPROVE_CODING=GO; stack Spring/Angular/Python; ports 3340–3342; MVP paper confluence slice; hire order architect→…→promote | done — DECISION-001 + pre-work/approval.md GO; no app code |
 | 2026-07-15 ~09:05 | grok (cursor-grok-4.5-high) | Hire `trading-portal-grok-theory-2026-07-15`: ICT+Gann theory, engines, confluence, automation pipeline, vision draft | done — 7 docs + this log |
 | 2026-07-15 ~08:57 | lead+cursor | Create `trading-portal` scaffold at MyWorkspace root; reference grok_dev; invoke Grok CLI for ICT+Gann theories/algorithms | scaffold ok; theory hire completed ~09:05 |
+
+| 2026-07-16 ~21:05 | lead+e2e (cursor) | Roadmap 0.2 wave1 done: MT5 subprocess timeout (IPC no-hang), H4/D1 defaults, P4 ops soak/weights/replay, ICT HTF H4?H1, news calendar, A+ auto-confirm OFF; P5 HOLD design; public DEV E2E **9/9 PASS** on trading-portal-dev.delena.buzz with CSS_ADMIN_PASSWORD (slot claim/release); soak_met=false on DEV (1/1). |

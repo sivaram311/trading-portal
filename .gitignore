@@ -13,3 +13,8 @@ python/**/__pycache__/
 backend/target/
 *.log
 .env
+
+# agy local run noise
+agents/collab/**/agy-raw-out.txt
+agents/collab/**/agy-run.log
+

@@ -40,6 +40,11 @@ def _build_parser() -> argparse.ArgumentParser:
     mt5_p.add_argument("--daemon", action="store_true", help="Keep polling in a loop instead of a single run")
     mt5_p.add_argument("--interval-seconds", type=int, default=60, help="Poll interval for --daemon (default: 60)")
     mt5_p.add_argument("--health", action="store_true", help="Also start the health HTTP endpoint")
+    mt5_p.add_argument(
+        "--strict",
+        action="store_true",
+        help="In --daemon mode, exit on MT5 unavailable instead of sleeping and retrying",
+    )
 
     sub.add_parser("bootstrap-db", help="Create ohlc_candle (create-if-not-exists) and exit")
 
@@ -128,9 +133,22 @@ def cmd_mt5(settings: Settings, args: argparse.Namespace) -> int:
         if not args.daemon:
             return run_once()
 
-        logger.info("mt5 daemon mode: polling every %ds. Ctrl+C to stop.", args.interval_seconds)
+        logger.info(
+            "mt5 daemon mode: polling every %ds%s. Ctrl+C to stop.",
+            args.interval_seconds,
+            " (--strict: exit on MT5 unavailable)" if args.strict else " (continues on MT5 unavailable)",
+        )
         while True:
-            run_once()
+            rc = run_once()
+            if rc != 0:
+                if args.strict:
+                    logger.error("mt5 daemon exiting with code %d (--strict)", rc)
+                    return rc
+                logger.warning(
+                    "mt5 daemon: run failed (exit %d) — health STATE updated; retrying in %ds",
+                    rc,
+                    args.interval_seconds,
+                )
             time.sleep(args.interval_seconds)
     finally:
         if server is not None:

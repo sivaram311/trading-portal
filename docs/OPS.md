@@ -106,8 +106,35 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 | POST | `/api/paper/confirm` | yes | opens PAPER_OPEN (409 if CONFLICT/deny/F/already actioned) |
 | POST | `/api/paper/dismiss` | yes | marks DISMISSED |
 | GET | `/api/paper/journal` | yes | filter by grade/mode/direction/status/session_date/from/to |
+| GET | `/api/ops/soak` | yes | PREPROD soak metrics (decision count, session days, weights) |
+| GET | `/api/ops/weights` | yes | configured + distinct `weights_version` audit |
+| POST | `/api/ops/replay` | yes | recompute decision at `?asof=ISO-8601` (default now) from stored OHLC |
 
-## 8. Engines (source of truth = docs)
+## 8. News blackout + A+ auto-confirm
+
+- **News veto:** `trading.news.blackouts[]` — absolute `start`/`end` instants or recurring `ny-start`/`ny-end` (+ optional `weekday`). When `asof` falls inside any window, confluence → `NEWS_VETO` / grade `F` / `deny`. Empty list = no veto.
+- **A+ auto-confirm:** `trading.paper.auto-confirm-a-plus=false` (default OFF on all envs). When ON, pipeline auto-opens `PAPER_OPEN` for ALERTED A+ with risk ok and no existing open position.
+
+## 8b. PREPROD paper soak runbook
+
+**Gate (DECISION-001):** ≥ **30** journaled decisions **or** ≥ **10** distinct `session_date` days (whichever first).
+
+```powershell
+# After CSS login, Bearer against PREPROD API (or via staging host /api):
+# GET https://trading-portal-staging.delena.buzz/api/ops/soak
+# soakMet=true when targets met. Track weights via GET /api/ops/weights.
+```
+
+On PREPROD, prefer real MT5 ingest when terminal available:
+
+```powershell
+cd E:\MyWorkspace\trading-portal\python
+.\scripts\run-ingest-preprod.ps1 -Mode mt5 -ExtraArgs '--daemon --health'   # :4342
+```
+
+If MT5 unavailable, seed is OK for UI/API soak **instrumentation** only — mark evidence as seed-backed, not live-OHLC soak. Replay: `POST /api/ops/replay`. P5 micro-live remains HOLD (`agents/hires/P5-MICRO-LIVE-HOLD.md`) until explicit user GO after soakMet.
+
+## 9. Engines (source of truth = docs)
 
 `com.delena.tradingportal.engine.*`, pure compute over stored OHLC:
 - `ict.IctEngine` â†’ `IctSnapshot` (killzone, HTF premium/discount + bias, BOS/MSS, sweep+reclaim, OB/FVG, quality 0..5)
@@ -117,12 +144,13 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 
 Weights are versioned via `trading.confluence.weights-version` (default `v1`). Bump on any change.
 
-## 9. Live execution
+## 10. Live execution
 
 **Absent / hard-disabled.** No broker adapter is wired. `trading.exec.live-enabled=false` is a guard
-flag only; there is no code path it enables. Live routing requires a separate Grok GO.
+flag only; there is no code path it enables. Live routing requires explicit **user GO**
+(`agents/hires/P5-MICRO-LIVE-HOLD.md`) after PREPROD soak.
 
-## 10. Reset seed / recompute
+## 11. Reset seed / recompute
 
 ```sql
 -- wipe DEV data (keeps schema); next startup reseeds + recomputes
@@ -130,7 +158,7 @@ truncate dev.paper_journal, dev.risk_verdict, dev.confluence_decision,
          dev.gann_snapshot, dev.ict_snapshot, dev.ohlc_candle;
 ```
 
-## 11. Blockers / known gaps
+## 12. Blockers / known gaps
 
 - **CSS DEV :9000 JWKS required for auth (`trading.security.dev-bypass=false`).
   time). DEV therefore uses `dev-bypass=false (JWKS; CSS :9000 required)`. Real JWKS wiring is implemented and default-on when the

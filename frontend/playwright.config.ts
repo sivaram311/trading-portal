@@ -10,10 +10,11 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const PORT = process.env['TP_UI_PORT'] || '3341';
 const BASE_URL = process.env['TP_BASE_URL'] || `http://127.0.0.1:${PORT}`;
+const isPublicHost = /^https:\/\//i.test(BASE_URL);
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30_000,
+  timeout: isPublicHost ? 45_000 : 30_000,
   expect: { timeout: 7_000 },
   fullyParallel: false,
   forbidOnly: !!process.env['CI'],
@@ -39,11 +40,15 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 800, height: 1280 } }
     }
   ],
-  // Auto-start the dev server for local runs; harmless if already running.
-  webServer: {
-    command: 'npm run start',
-    url: BASE_URL,
-    reuseExistingServer: true,
-    timeout: 120_000
-  }
+  // Local loopback only — public DEV host (CONSCIOUS #18) already serves nginx static.
+  ...(isPublicHost
+    ? {}
+    : {
+        webServer: {
+          command: 'npm run start',
+          url: BASE_URL,
+          reuseExistingServer: true,
+          timeout: 120_000
+        }
+      })
 });

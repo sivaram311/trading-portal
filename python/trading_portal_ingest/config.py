@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 
 DEFAULT_SYMBOL = "XAUUSD"
 ALL_TIMEFRAMES = ["M1", "M5", "M15", "H1", "H4", "D1"]
-DEFAULT_TIMEFRAMES = ["M1", "M5", "M15", "H1"]
+DEFAULT_TIMEFRAMES = ["M1", "M5", "M15", "H1", "H4", "D1"]
 
 # Timeframe -> minutes-per-bar, matches docs/contracts/schemas/ohlc-bar.json enum.
 TIMEFRAME_MINUTES = {
