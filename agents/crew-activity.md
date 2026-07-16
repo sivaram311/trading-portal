@@ -35,3 +35,5 @@ Append newest at top.
 | 2026-07-16 ~23:32 | roadmap 0.3 (cursor; agy-fail→grok) | Grok PROCEED 0.3.0-SNAPSHOT: ops closeout + PREPROD soak NOW, P5 HOLD. AP DEV :8080 hikari=5; PG monitor script + Task `MyAgent-PG-Connection-Check` 5m; PREPROD MT5 :4342 ok; **soak_met=true** (30 journal decisions). Next: observability + paper-path reliability. |
 
 | 2026-07-16 ~23:50 | roadmap 0.3 t3+t4 (cursor) | **Observability + paper-path done:** `GET /api/ops/status`, `scripts/check-fleet.ps1`, F/G start.ps1 schema pin (fix SPRING_DATASOURCE pollution). Fleet smoke: PREPROD soak_met=true decisions=30; paper decision/journal/replay OK. Evidence `docs/FLEET-SMOKE-0.3.md`. P5 HOLD. Engine depth deferred. |
+
+| 2026-07-16 ~23:58 | ops (cursor) | Cleared 4 abandoned Cursor shell wrappers (zombie diagnostics); kept CSS DEV + DEV MT5. PREPROD ingest died with parent → restarted `:4342`. OPS daemon-hygiene note. | `:3342`+`:4342` ok/mt5 |

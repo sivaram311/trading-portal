@@ -156,6 +156,15 @@ cd E:\MyWorkspace\trading-portal\python
 
 **Status 2026-07-16 ~23:32 IST:** PREPROD daemon `:4342` healthy (`last_mode=mt5`); **`soak_met=true`** (`journal_decision_count=30`, target 30-or-10-days). Accumulated via `POST /api/ops/replay` over stored live OHLC (H1 coverage from mid-June). P5 micro-live remains HOLD until explicit user GO.
 
+**Daemon process hygiene (2026-07-16 ~23:58 IST):** Ingest daemons started via Cursor background shells are **children of that shell**. Killing an “abandoned” wrapper also kills `:3342`/`:4342`. Keep intentional long-runners (CSS DEV `start-dev.ps1`, `run-ingest-*.ps1 --daemon`); only kill true zombie diagnostics. If a daemon dies with its wrapper, restart:
+
+```powershell
+.\scripts\run-ingest-dev.ps1 -Mode mt5 -ExtraArgs '--daemon --health'       # :3342
+.\scripts\run-ingest-preprod.ps1 -Mode mt5 -ExtraArgs '--daemon --health'  # :4342
+```
+
+Verified after cleanup: DEV `:3342` and PREPROD `:4342` both `ok` / `last_mode=mt5`.
+
 ### MT5 status 0.2.0
 
 **2026-07-16 ~22:07 IST** — `E:\MyWorkspace\trading-portal\python\.venv\Scripts\python.exe -m trading_portal_ingest check-mt5`: **unavailable** (MT5 subprocess timed out after 10.0s — IPC hang; exit 1). Use seed ingest for soak instrumentation until terminal reachable; mark evidence seed-backed.

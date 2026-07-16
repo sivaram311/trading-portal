@@ -5,6 +5,14 @@ Paper-only system; no live execution involved in any entry below.
 
 ---
 
+## INC-2026-07-16-06 — Cursor shell cleanup killed PREPROD ingest (SEV-4)
+
+- **Symptom:** After killing abandoned diagnostic shells, `:4342` went DOWN.
+- **Root cause:** PREPROD MT5 daemon was a **child** of Cursor background shell `330706`; killing the wrapper tree also stopped the daemon.
+- **Fix:** Restarted `run-ingest-preprod.ps1 -Mode mt5 --daemon --health`. Documented daemon hygiene in `docs/OPS.md` §8b — keep intentional long-runners; only kill true zombies.
+
+---
+
 ## INC-2026-07-16-05 — Cross-env schema pollution via inherited `SPRING_DATASOURCE_*` (SEV-3)
 
 - **Symptom:** PREPROD `/api/ops/soak` reported `soak_met=false` / 2 decisions while SQL showed 30 rows in `preprod.paper_journal` (matched **prod** counts).
