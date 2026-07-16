@@ -134,6 +134,10 @@ cd E:\MyWorkspace\trading-portal\python
 
 If MT5 unavailable, seed is OK for UI/API soak **instrumentation** only — mark evidence as seed-backed, not live-OHLC soak. Replay: `POST /api/ops/replay`. P5 micro-live remains HOLD (`agents/hires/P5-MICRO-LIVE-HOLD.md`) until explicit user GO after soakMet.
 
+### MT5 status 0.2.0
+
+**2026-07-16 ~22:07 IST** — `E:\MyWorkspace\trading-portal\python\.venv\Scripts\python.exe -m trading_portal_ingest check-mt5`: **unavailable** (MT5 subprocess timed out after 10.0s — IPC hang; exit 1). Use seed ingest for soak instrumentation until terminal reachable; mark evidence seed-backed.
+
 ## 9. Engines (source of truth = docs)
 
 `com.delena.tradingportal.engine.*`, pure compute over stored OHLC:
