@@ -162,8 +162,8 @@ If MT5 unavailable, seed is OK for UI/API soak **instrumentation** only — mark
 ## 8c. Postgres connection pool (shared :5432)
 
 The Postgres instance at `127.0.0.1:5432` is **multi-tenant** (CSS, agent-portal,
-trading-portal — each across dev/preprod/prod). It has `max_connections=100`
-(~97 usable). To avoid saturation (see `docs/INCIDENTS.md` INC-2026-07-16-04),
+trading-portal — each across dev/preprod/prod). It has `max_connections=150`
+(~147 usable; bumped 2026-07-16 from 100). To avoid saturation (see `docs/INCIDENTS.md` INC-2026-07-16-04),
 trading-portal caps HikariCP:
 
 ```
@@ -183,8 +183,8 @@ profiles) **and** passed as override args in the deployed `F:`/`G:` `start.ps1`
 ```
 
 `pg_terminate_backend` is **emergency-only**; do not use it as a steady-state fix.
-Cross-app caps + a `max_connections` bump are proposed in
-`E:\MyAgent\workflow\db\PROPOSAL-2026-07-16-pool-caps.md` (needs owner GO).
+Cross-app caps + `max_connections` 100→150 are **DONE** (user GO 2026-07-16) —
+see `E:\MyAgent\workflow\db\PROPOSAL-2026-07-16-pool-caps.md`. Post-roll: ~19 total conns.
 
 ## 9. Engines (source of truth = docs)
 
