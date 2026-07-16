@@ -13,15 +13,14 @@
 | 2 | Track E PREPROD soak → `soak_met=true` | ops+QA | Close DECISION-001 gate waived for Q2 | none | **done** |
 | 3 | Observability harden | backend+ops | Fleet under real MT5 | none | **done** |
 | 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | **done** |
-| 5 | Engine depth | engines | Deep-algo wave 2026-07-17 | none | **done (paper)** — OTE/EQH/Style/Quality/PM/Backtester; Grok GOOD_FOR_DEV_SMOKE |
-| 6 | P5 micro-live | — | User GO + soak_met | **blocked** | HOLD |
+| 5 | Engine depth | engines | Deep-algo + SMT 2026-07-17 | none | **done** — tagged `v0.3.0` paper F/G |
+| 6 | P5 micro-live | — | Exact phrase: `GO micro-live P5 on DEV only` | **blocked** | HOLD |
 
 ## MUST_NOT
 
 - No live broker orders / `order_send` / broker REST
 - No `trading.exec.live-enabled=true`
-- No P5 adapter code
-- No new engines / multi-asset / SaaS until soak_met + monitoring green
+- No P5 adapter code until exact unlock phrase
 - No password rotation / destructive PG without user GO
 
 ## This session progress
@@ -35,7 +34,8 @@
 - [x] **Track 3:** `GET /api/ops/status` (soak + OHLC freshness + ingest probe + live guard); `scripts/check-fleet.ps1`; PG monitor hook
 - [x] **Track 4:** PREPROD paper-path smoke (decision/journal/replay) — evidence `docs/FLEET-SMOKE-0.3.md`
 - [x] Hardened F:/G: `start.ps1` — clear inherited `SPRING_DATASOURCE_*`, pin schema (fix cross-env pollution)
+- [x] **Track 5 + promote:** `v0.3.0` tagged; DEV E2E 9/9; F:/G: `0.3.0` jar health ok; `live-enabled=false`
 
 ## Version
 
-Develop as **0.3.0-SNAPSHOT** on DEV. Tracks 1–5 closed (engine depth paper-only). Remaining: **P5 HOLD**. Tag only after Reviewer GO when user asks promote.
+**Live tag `v0.3.0`** on E/F/G (paper-only). Remaining: **P5 HOLD** until exact unlock phrase (`agents/hires/P5-UNLOCK-STATUS-2026-07-17.md`).
