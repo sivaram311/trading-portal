@@ -153,7 +153,7 @@ cd E:\MyWorkspace\trading-portal\python
 .\scripts\run-ingest-preprod.ps1 -Mode mt5 -ExtraArgs '--daemon --health'   # :4342
 ```
 
-If MT5 unavailable, seed is OK for UI/API soak **instrumentation** only — mark evidence as seed-backed, not live-OHLC soak. Replay: `POST /api/ops/replay`. P5 micro-live remains HOLD (`agents/hires/P5-MICRO-LIVE-HOLD.md`) until explicit user GO after soakMet.
+**Status 2026-07-16 ~23:32 IST:** PREPROD daemon `:4342` healthy (`last_mode=mt5`); **`soak_met=true`** (`journal_decision_count=30`, target 30-or-10-days). Accumulated via `POST /api/ops/replay` over stored live OHLC (H1 coverage from mid-June). P5 micro-live remains HOLD until explicit user GO.
 
 ### MT5 status 0.2.0
 

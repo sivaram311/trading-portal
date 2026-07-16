@@ -64,6 +64,8 @@ Ship as **0.2.0-SNAPSHOT** on DEV until Device Lab + Reviewer GO; tag only after
 - [x] Auto-confirm default OFF + tests
 - [x] Public DEV-host E2E 9/9 + slot SoT
 - [x] P5 HOLD doc only
-- [ ] PREPROD soakMet (accumulation / MT5 terminal)
-- [ ] Tag v0.2.0 + promote (needs Reviewer GO when user asks)
+- [x] PREPROD soakMet (**true** 2026-07-16 ~23:32 IST — 30 journaled decisions via replay over live MT5 OHLC)
+- [x] Tag v0.2.0 + promote (Q1+Q2 live; soak was waived at promote, now met)
+
+**Next:** see `ROADMAP-0.3-EXECUTION.md` (Grok PROCEED after Agy fail).
 
