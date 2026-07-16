@@ -40,7 +40,13 @@ public record PaperJournalEntry(
             String exitReason,
             Double rMultiple,
             Double mfeR,
-            Double maeR
+            Double maeR,
+            /** Active stop (initially decision stop; may move to BE / trail). */
+            Double currentStop,
+            /** Remaining size fraction after T1 scale-out (1.0 = full size). */
+            Double remainingSize,
+            Boolean beActive,
+            Boolean t1Hit
     ) {
     }
 }

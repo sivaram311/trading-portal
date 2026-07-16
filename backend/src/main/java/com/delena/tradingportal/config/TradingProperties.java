@@ -1,5 +1,6 @@
 package com.delena.tradingportal.config;
 
+import com.delena.tradingportal.engine.style.TradingStyle;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.DayOfWeek;
@@ -19,6 +20,8 @@ public class TradingProperties {
     private final Paper paper = new Paper();
     private final News news = new News();
     private final Ops ops = new Ops();
+    /** Active trading style preset (SCALP / DAY / POSITIONAL). Default DAY. */
+    private TradingStyle style = TradingStyle.DAY;
 
     public Exec getExec() {
         return exec;
@@ -46,6 +49,14 @@ public class TradingProperties {
 
     public Ops getOps() {
         return ops;
+    }
+
+    public TradingStyle getStyle() {
+        return style;
+    }
+
+    public void setStyle(TradingStyle style) {
+        this.style = style != null ? style : TradingStyle.DAY;
     }
 
     /** Live-execution guard. There is no live adapter in this slice; this must stay false. */

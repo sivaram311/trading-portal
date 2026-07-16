@@ -13,6 +13,11 @@ public interface PaperJournalRepository extends JpaRepository<PaperJournalEntity
 
     long countByStatus(String status);
 
+    @Query("SELECT COUNT(j) FROM PaperJournalEntity j WHERE j.status IN ('PAPER_OPEN', 'PARTIAL')")
+    long countOpenPositions();
+
+    List<PaperJournalEntity> findByStatusIn(List<String> statuses);
+
     boolean existsByDecisionId(UUID decisionId);
 
     Optional<PaperJournalEntity> findTopByDecisionIdOrderByCreatedAtDesc(UUID decisionId);

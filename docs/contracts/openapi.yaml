@@ -264,6 +264,35 @@ paths:
         "401":
           $ref: "#/components/responses/Unauthorized"
 
+  /api/paper/close:
+    post:
+      tags: [paper-trading]
+      summary: Close an open/partial paper position (PositionManager MANUAL/exit)
+      operationId: closePaperPosition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseRequest"
+      responses:
+        "200":
+          description: Paper position closed (PAPER_CLOSED) with exit_reason / r_multiple / mfe_r / mae_r.
+          content:
+            application/json:
+              schema:
+                $ref: "./schemas/paper-journal-entry.json"
+        "404":
+          description: decision_id not found.
+        "409":
+          description: Not an open paper position (status not PAPER_OPEN/PARTIAL).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/paper/journal:
     get:
       tags: [paper-trading]
@@ -451,6 +480,20 @@ components:
           type: string
         reason:
           type: string
+
+    CloseRequest:
+      type: object
+      additionalProperties: false
+      required: [decision_id]
+      properties:
+        decision_id:
+          type: string
+        exit_reason:
+          type: string
+          description: MANUAL | STOP | T1 | T2 | TIME | STRUCTURE_FLIP | BE_STOP | NEWS
+        exit_price:
+          type: number
+          format: double
 
     JournalListResponse:
       type: object

@@ -64,7 +64,7 @@ class RiskGateTest {
         var liquidity = new IctSnapshot.Liquidity(
                 List.of(new IctSnapshot.Pool("AHH", 2008, "high")), "sweep", "AHH", true);
         var zones = new IctSnapshot.Zones(List.of(), List.of(),
-                new IctSnapshot.Zone("OB", "bear", 2006, 2009, "fresh", asof));
+                new IctSnapshot.Zone("OB", "bear", 2006, 2009, "fresh", asof), null);
         return new IctSnapshot("XAUUSD", asof, "NY_OPEN", htf, structure, liquidity, zones, 5,
                 List.of("MSS_BEAR"), new IctSnapshot.RawRefs(List.of()));
     }

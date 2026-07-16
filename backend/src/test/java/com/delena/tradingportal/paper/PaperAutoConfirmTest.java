@@ -46,7 +46,7 @@ class PaperAutoConfirmTest {
         mapper.findAndRegisterModules();
         mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
         json = new Json(mapper);
-        paperTrading = new PaperTradingService(null, null, journalRepo, json);
+        paperTrading = new PaperTradingService(null, null, journalRepo, new PositionManager(), json);
     }
 
     @Test
@@ -55,7 +55,7 @@ class PaperAutoConfirmTest {
         RiskVerdict risk = okRisk();
         PaperJournalEntity row = alertedRow();
 
-        when(journalRepo.countByStatus("PAPER_OPEN")).thenReturn(0L);
+        when(journalRepo.countOpenPositions()).thenReturn(0L);
         when(journalRepo.findTopByDecisionIdOrderByCreatedAtDesc(decisionId)).thenReturn(Optional.of(row));
 
         boolean opened = paperTrading.autoOpenIfEligible(decision, risk, "system:auto-confirm-a-plus");
@@ -79,7 +79,7 @@ class PaperAutoConfirmTest {
 
     @Test
     void autoOpenSkipsWhenPaperAlreadyOpen() {
-        when(journalRepo.countByStatus("PAPER_OPEN")).thenReturn(1L);
+        when(journalRepo.countOpenPositions()).thenReturn(1L);
 
         assertFalse(paperTrading.autoOpenIfEligible(aPlusDecision(), okRisk(), "system:auto-confirm-a-plus"));
         verify(journalRepo, never()).save(any());

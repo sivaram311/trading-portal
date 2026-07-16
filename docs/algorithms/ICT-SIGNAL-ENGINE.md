@@ -236,4 +236,5 @@ NEWS_VETO | DATA_GAP
 
 - Theory: `docs/theory/ICT-GOLD.md`  
 - Fusion: `docs/theory/CONFLUENCE-FRAMEWORK.md`  
-- Sibling: `GANN-CYCLE-ENGINE.md`
+- Sibling: `GANN-CYCLE-ENGINE.md`  
+- Deep formulas / OTE / EQH / roadmap: [`DEEP-ALGORITHMS-AND-CALCULATIONS.md`](./DEEP-ALGORITHMS-AND-CALCULATIONS.md)

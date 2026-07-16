@@ -1,6 +1,7 @@
 package com.delena.tradingportal.web;
 
 import com.delena.tradingportal.paper.PaperTradingService;
+import com.delena.tradingportal.web.dto.Dtos.CloseRequest;
 import com.delena.tradingportal.web.dto.Dtos.ConfirmRequest;
 import com.delena.tradingportal.web.dto.Dtos.DismissRequest;
 import com.delena.tradingportal.web.dto.Dtos.JournalListResponse;
@@ -34,6 +35,13 @@ public class PaperController {
     @PostMapping("/api/paper/dismiss")
     public JsonNode dismiss(@Valid @RequestBody DismissRequest req, Authentication auth) {
         return paper.dismiss(req.decisionId(), req.reason(), actor(auth));
+    }
+
+    @PostMapping("/api/paper/close")
+    public JsonNode close(@Valid @RequestBody CloseRequest req, Authentication auth) {
+        double exit = req.exitPrice() != null ? req.exitPrice() : 0.0;
+        String reason = req.exitReason() != null && !req.exitReason().isBlank() ? req.exitReason() : "MANUAL";
+        return paper.close(req.decisionId(), reason, exit, actor(auth));
     }
 
     @GetMapping("/api/paper/journal")

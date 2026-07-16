@@ -37,6 +37,9 @@ public final class Dtos {
     public record DismissRequest(@NotBlank String decisionId, String reason) {
     }
 
+    public record CloseRequest(@NotBlank String decisionId, String exitReason, Double exitPrice) {
+    }
+
     public record JournalListResponse(List<JsonNode> items, long total, int limit, int offset) {
     }
 }

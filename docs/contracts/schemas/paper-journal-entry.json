@@ -22,7 +22,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["DETECTED", "SCORED", "RISK_CHECKED", "REJECTED", "ALERTED", "DISMISSED", "PAPER_OPEN", "PAPER_CLOSED"],
+      "enum": ["DETECTED", "SCORED", "RISK_CHECKED", "REJECTED", "ALERTED", "DISMISSED", "PAPER_OPEN", "PARTIAL", "PAPER_CLOSED"],
       "description": "AUTOMATION-PIPELINE.md §4 state machine, extended with DISMISSED for an explicit operator dismiss (as distinct from a risk-gate REJECTED)."
     },
     "mode": { "type": "string", "enum": ["R", "C", "T", "NONE"] },
@@ -98,11 +98,15 @@
         "exit_price": { "type": ["number", "null"] },
         "exit_reason": {
           "type": ["string", "null"],
-          "enum": ["STOP", "T1", "T2", "MANUAL", "EOD", null]
+          "enum": ["STOP", "BE_STOP", "T1", "T2", "MANUAL", "STRUCTURE_FLIP", "TIME", "EOD", null]
         },
         "r_multiple": { "type": ["number", "null"] },
         "mfe_r": { "type": ["number", "null"], "description": "Max favorable excursion, in R." },
-        "mae_r": { "type": ["number", "null"], "description": "Max adverse excursion, in R." }
+        "mae_r": { "type": ["number", "null"], "description": "Max adverse excursion, in R." },
+        "current_stop": { "type": ["number", "null"], "description": "Active stop (initial, BE, or trailed)." },
+        "remaining_size": { "type": ["number", "null"], "description": "Fraction of size still open after T1 scale-out." },
+        "be_active": { "type": ["boolean", "null"] },
+        "t1_hit": { "type": ["boolean", "null"] }
       }
     }
   }

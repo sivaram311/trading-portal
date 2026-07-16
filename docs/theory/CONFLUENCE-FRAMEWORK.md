@@ -260,3 +260,4 @@ Phone-first viewport later: 360×780 primary (machine device SoT).
 | [`../algorithms/ICT-SIGNAL-ENGINE.md`](../algorithms/ICT-SIGNAL-ENGINE.md) | ICT compute |
 | [`../algorithms/GANN-CYCLE-ENGINE.md`](../algorithms/GANN-CYCLE-ENGINE.md) | Gann compute |
 | [`../algorithms/AUTOMATION-PIPELINE.md`](../algorithms/AUTOMATION-PIPELINE.md) | Signal → risk → execution sketch |
+| [`../algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md`](../algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md) | Precise formulas, OTE, sizing, backtest, roadmap |

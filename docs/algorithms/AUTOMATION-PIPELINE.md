@@ -232,5 +232,6 @@ Exact stack TBD by Technical Architect pre-work.
 | `docs/theory/CONFLUENCE-FRAMEWORK.md` | Decision rules |
 | `docs/algorithms/ICT-SIGNAL-ENGINE.md` | ICT compute |
 | `docs/algorithms/GANN-CYCLE-ENGINE.md` | Gann compute |
+| `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md` | Precise algos, PositionManager, backtester, roadmap |
 | `agents/pre-work/01-vision-walkthrough.md` | Product vision |
 | `docs/reference/GROK-DEV.md` | Prior pipeline patterns (reference only) |

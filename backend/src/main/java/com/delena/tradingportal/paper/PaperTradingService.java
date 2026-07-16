@@ -4,7 +4,8 @@ import com.delena.tradingportal.common.Json;
 import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.PaperJournalEntry;
 import com.delena.tradingportal.model.RiskVerdict;
-import com.delena.tradingportal.paper.PaperDecisionPolicy;
+import com.delena.tradingportal.engine.style.StyleProfile;
+import com.delena.tradingportal.model.OhlcBar;
 import com.delena.tradingportal.persistence.ConfluenceDecisionEntity;
 import com.delena.tradingportal.persistence.ConfluenceDecisionRepository;
 import com.delena.tradingportal.persistence.PaperJournalEntity;
@@ -39,13 +40,15 @@ public class PaperTradingService {
     private final ConfluenceDecisionRepository decisionRepo;
     private final RiskVerdictRepository riskRepo;
     private final PaperJournalRepository journalRepo;
+    private final PositionManager positionManager;
     private final Json json;
 
     public PaperTradingService(ConfluenceDecisionRepository decisionRepo, RiskVerdictRepository riskRepo,
-                               PaperJournalRepository journalRepo, Json json) {
+                               PaperJournalRepository journalRepo, PositionManager positionManager, Json json) {
         this.decisionRepo = decisionRepo;
         this.riskRepo = riskRepo;
         this.journalRepo = journalRepo;
+        this.positionManager = positionManager;
         this.json = json;
     }
 
@@ -62,7 +65,7 @@ public class PaperTradingService {
                     "Decision is not confirmable (automation/grade/mode/risk): grade=" + decision.getGrade()
                             + " mode=" + decision.getMode() + " automation=" + decision.getAutomation() + " riskOk=" + riskOk);
         }
-        if (journalRepo.countByStatus("PAPER_OPEN") >= 1) {
+        if (journalRepo.countOpenPositions() >= 1) {
             throw new ConflictException("MAX_OPEN_POSITIONS", "A paper position is already open (max 1 on XAUUSD).");
         }
 
@@ -83,7 +86,7 @@ public class PaperTradingService {
         if (!PaperDecisionPolicy.isConfirmable(decision, risk)) {
             return false;
         }
-        if (journalRepo.countByStatus("PAPER_OPEN") >= 1) {
+        if (journalRepo.countOpenPositions() >= 1) {
             return false;
         }
         UUID id;
@@ -117,6 +120,68 @@ public class PaperTradingService {
         Instant now = Instant.now();
         PaperJournalEntry updated = withAction(current, "DISMISSED", now, actor, reason, current.paper());
         applyUpdate(row, "DISMISSED", now, actor, reason, updated);
+        return json.read(row.getPayload());
+    }
+
+    /**
+     * Bar-by-bar management for open paper positions (PAPER_OPEN / PARTIAL).
+     * Pipeline or a scheduled job can call this each new bar.
+     *
+     * @param mssDirection ICT structure direction when event is MSS (long/short/none); flip only if it opposes the open trade
+     */
+    @Transactional
+    public int manageOpenPositions(OhlcBar bar, StyleProfile style, List<OhlcBar> recentBars,
+                                   String mssDirection) {
+        double atr = PositionManager.atr(recentBars);
+        List<PaperJournalEntity> openRows = journalRepo.findByStatusIn(List.of("PAPER_OPEN", "PARTIAL"));
+        int updated = 0;
+        for (PaperJournalEntity row : openRows) {
+            PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
+            boolean flip = isOpposingMss(current.direction(), mssDirection);
+            PositionManager.BarResult result = positionManager.onBar(current, bar, style, atr, flip);
+            if (!result.entry().equals(current) || !result.status().equals(row.getStatus())) {
+                Instant now = bar.ts() != null ? bar.ts() : Instant.now();
+                applyUpdate(row, result.status(), now, "system:position-manager", null, result.entry());
+                updated++;
+            }
+        }
+        return updated;
+    }
+
+    /** Backward-compatible overload: boolean flip applies to all open rows. */
+    @Transactional
+    public int manageOpenPositions(OhlcBar bar, StyleProfile style, List<OhlcBar> recentBars,
+                                   boolean structureFlip) {
+        return manageOpenPositions(bar, style, recentBars, structureFlip ? "flip-all" : "none");
+    }
+
+    private static boolean isOpposingMss(String positionDir, String mssDirection) {
+        if (mssDirection == null || "none".equals(mssDirection)) {
+            return false;
+        }
+        if ("flip-all".equals(mssDirection)) {
+            return true;
+        }
+        if ("long".equals(positionDir) && "short".equals(mssDirection)) {
+            return true;
+        }
+        return "short".equals(positionDir) && "long".equals(mssDirection);
+    }
+
+    @Transactional
+    public JsonNode close(String decisionId, String exitReason, double exitPrice, String actor) {
+        UUID id = parse(decisionId);
+        PaperJournalEntity row = journalRepo.findTopByDecisionIdOrderByCreatedAtDesc(id)
+                .orElseThrow(() -> new NotFoundException("JOURNAL_NOT_FOUND", "No journal row for decision " + decisionId));
+        String status = row.getStatus();
+        if (!"PAPER_OPEN".equals(status) && !"PARTIAL".equals(status)) {
+            throw new ConflictException("NOT_OPEN", "Decision is not an open paper position (status=" + status + ").");
+        }
+        PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
+        Instant now = Instant.now();
+        PositionManager.BarResult result = positionManager.closeAt(current, now, exitPrice,
+                exitReason != null ? exitReason : "MANUAL");
+        applyUpdate(row, result.status(), now, actor, exitReason, result.entry());
         return json.read(row.getPayload());
     }
 
@@ -164,14 +229,15 @@ public class PaperTradingService {
         PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
         Instant now = Instant.now();
         double entryMid = round((current.entry().low() + current.entry().high()) / 2.0);
-        var paper = new PaperJournalEntry.Paper(now, null, entryMid, null, null, null, null, null);
+        var paper = new PaperJournalEntry.Paper(now, null, entryMid, null, null, null, null, null,
+                current.stop(), 1.0, false, false);
         PaperJournalEntry updated = withAction(current, "PAPER_OPEN", now, actor, note, paper);
         applyUpdate(row, "PAPER_OPEN", now, actor, note, updated);
     }
 
     private void ensureActionable(PaperJournalEntity row) {
         String s = row.getStatus();
-        if ("PAPER_OPEN".equals(s) || "PAPER_CLOSED".equals(s) || "DISMISSED".equals(s)) {
+        if ("PAPER_OPEN".equals(s) || "PARTIAL".equals(s) || "PAPER_CLOSED".equals(s) || "DISMISSED".equals(s)) {
             throw new ConflictException("ALREADY_ACTIONED", "Decision already actioned (status=" + s + ").");
         }
     }

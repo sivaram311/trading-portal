@@ -254,4 +254,5 @@ Emit beside intraday snapshot; **do not** increment automation quality from thes
 - Theory: `docs/theory/GANN-INTRADAY-TIME-CYCLES.md`  
 - Fusion: `docs/theory/CONFLUENCE-FRAMEWORK.md`  
 - Sibling: `ICT-SIGNAL-ENGINE.md`  
+- Deep formulas / So9 / stretch / roadmap: [`DEEP-ALGORITHMS-AND-CALCULATIONS.md`](./DEEP-ALGORITHMS-AND-CALCULATIONS.md)  
 - Reference only: grok_dev Gann Intraday usage guide

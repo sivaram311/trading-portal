@@ -13,7 +13,7 @@
 | 2 | Track E PREPROD soak → `soak_met=true` | ops+QA | Close DECISION-001 gate waived for Q2 | none | **done** |
 | 3 | Observability harden | backend+ops | Fleet under real MT5 | none | **done** |
 | 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | **done** |
-| 5 | Engine depth | engines | Only if soak gaps demand | none | defer |
+| 5 | Engine depth | engines | Deep-algo wave 2026-07-17 | none | **done (paper)** — OTE/EQH/Style/Quality/PM/Backtester; Grok GOOD_FOR_DEV_SMOKE |
 | 6 | P5 micro-live | — | User GO + soak_met | **blocked** | HOLD |
 
 ## MUST_NOT
@@ -38,4 +38,4 @@
 
 ## Version
 
-Develop as **0.3.0-SNAPSHOT** on DEV; tracks 1–4 closed. Remaining: engine depth (defer) + P5 HOLD. Tag only after Reviewer GO when user asks.
+Develop as **0.3.0-SNAPSHOT** on DEV. Tracks 1–5 closed (engine depth paper-only). Remaining: **P5 HOLD**. Tag only after Reviewer GO when user asks promote.

@@ -1,0 +1,11 @@
+OPS live_enabled=False soak_met=False
+REPLAY id=655592b8-fe77-4620-b70d-87050f84ac54 grade=F mode=NONE dir=flat auto=deny
+DECISION id=655592b8-fe77-4620-b70d-87050f84ac54 grade=F mode=NONE dir=flat auto=deny score=0.0
+ICT quality=3 pools=AHH,ALH,PDH,PDL,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQH,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,EQL,ROUND_5,ROUND_10,ROUND_50,ROUND_100 activeOte=False entry=
+JOURNAL_COUNT=4
+CONFIRMABLE=False
+SKIP_CONFIRM (not A/A+ confirmable) — still assert reject path via journal latest
+REPLAY2 grade=F mode=NONE
+J status=REJECTED grade=F exit= mfe= mae= r= rem=
+J status=REJECTED grade=F exit= mfe= mae= r= rem=
+J status=REJECTED grade=C exit= mfe= mae= r= rem=

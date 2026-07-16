@@ -4,6 +4,8 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
+| 2026-07-17 ~03:00 | lead | Complete deep-algo: EQH cap/merge, POST /api/paper/close, docs, 0.3.0-SNAPSHOT; Reviewer then push | pending Reviewer GO |
+| 2026-07-17 | grok (decision) | Deep-algo re-ask: verified `mvn test` 53/0, H1–H7 wiring, sample CSV, live=false; paper smoke not run | **GOOD_FOR_DEV_SMOKE** — superseded by lead smoke above |
 | 2026-07-16 ~22:08 | parallel-track (cursor) | 0.2.0 parallel: `check-mt5` → unavailable (10s IPC timeout); `SOAK-BASELINE-0.2.md` + OPS MT5 status note | paper-only; does not block promote; no live |
 | 2026-07-16 ~21:00 | e2e-public-dev (cursor) | Public DEV Device Lab (#18): `TP_BASE_URL=https://trading-portal-dev.delena.buzz`, Playwright slot claim/release, 9 tests | **3 pass / 6 fail** — login 401 (CSS creds/client); `/api/health` 502; unauth redirect OK; evidence `docs/E2E-PUBLIC-DEV-0.2.md` |
 | 2026-07-16 ~20:55 | python-ingest (cursor) | MT5 IPC hang fix: subprocess-isolated probe/fetch (`mt5_isolated.py`) with hard timeout (`INGEST_MT5_INIT_TIMEOUT_SECONDS`, default 10s); `INGEST_MT5_PATH` + H4/D1 default timeframes; daemon `--strict` + continue-on-unavailable; `run-ingest-{dev,preprod,prod}.ps1`; unit tests `tests/test_mt5_init_timeout.py`; README updated | `check-mt5` returns in ~5–10s (NOT reachable, IPC hang killed in child); tests 6/6 OK; DEV daemon: `.\scripts\run-ingest-dev.ps1 -Mode mt5 -ExtraArgs '--daemon --health'` |

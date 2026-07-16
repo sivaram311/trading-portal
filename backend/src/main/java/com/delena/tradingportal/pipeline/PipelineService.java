@@ -4,11 +4,12 @@ import com.delena.tradingportal.common.Json;
 import com.delena.tradingportal.common.NyTime;
 import com.delena.tradingportal.config.TradingProperties;
 import com.delena.tradingportal.engine.confluence.ConfluenceEngine;
-import com.delena.tradingportal.engine.gann.GannConfig;
 import com.delena.tradingportal.engine.gann.GannEngine;
-import com.delena.tradingportal.engine.ict.IctConfig;
 import com.delena.tradingportal.engine.ict.IctEngine;
+import com.delena.tradingportal.engine.risk.MarketQualityGate;
 import com.delena.tradingportal.engine.risk.RiskGate;
+import com.delena.tradingportal.engine.style.StyleProfile;
+import com.delena.tradingportal.engine.style.StyleRegistry;
 import com.delena.tradingportal.market.MarketDataService;
 import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.GannSnapshot;
@@ -40,7 +41,7 @@ import java.util.UUID;
 
 /**
  * Orchestrates Stage B..E of the automation pipeline: run ICT + Gann engines over stored OHLC,
- * fuse into a graded {@link ConfluenceDecision}, run the Risk Gate, and persist every snapshot plus
+ * fuse into a graded {@link ConfluenceDecision}, run MarketQualityGate + Risk Gate, and persist every snapshot plus
  * an initial journal row (ALERTED when risk ok, else REJECTED with paper=null). No live execution.
  */
 @Service
@@ -63,13 +64,16 @@ public class PipelineService {
     private final PaperJournalRepository journalRepo;
     private final Json json;
     private final TradingProperties props;
+    private final StyleRegistry styleRegistry;
+    private final MarketQualityGate marketQualityGate;
 
     public PipelineService(MarketDataService market, IctEngine ictEngine, GannEngine gannEngine,
                            ConfluenceEngine confluenceEngine, RiskGate riskGate,
                            NewsCalendarService newsCalendar, PaperTradingService paperTrading,
                            ConfluenceDecisionRepository decisionRepo, IctSnapshotRepository ictRepo,
                            GannSnapshotRepository gannRepo, RiskVerdictRepository riskRepo,
-                           PaperJournalRepository journalRepo, Json json, TradingProperties props) {
+                           PaperJournalRepository journalRepo, Json json, TradingProperties props,
+                           StyleRegistry styleRegistry, MarketQualityGate marketQualityGate) {
         this.market = market;
         this.ictEngine = ictEngine;
         this.gannEngine = gannEngine;
@@ -84,6 +88,8 @@ public class PipelineService {
         this.journalRepo = journalRepo;
         this.json = json;
         this.props = props;
+        this.styleRegistry = styleRegistry;
+        this.marketQualityGate = marketQualityGate;
     }
 
     /** Recompute the latest decision from stored OHLC and persist all artifacts. */
@@ -110,13 +116,24 @@ public class PipelineService {
         Instant effectiveAsof = latestTs(m5, m15, asof);
 
         boolean newsVeto = newsCalendar.isVeto(effectiveAsof);
-        IctSnapshot ict = ictEngine.compute(h4, h1, m15, m5, effectiveAsof, IctConfig.defaults());
-        GannSnapshot gann = gannEngine.compute(m5, d1, effectiveAsof, GannConfig.defaults(), "NY_OPEN");
+        StyleProfile style = styleRegistry.get(props.getStyle());
+        IctSnapshot ict = ictEngine.compute(h4, h1, m15, m5, effectiveAsof, style.ict());
+        GannSnapshot gann = gannEngine.compute(m5, d1, effectiveAsof, style.gann(), "NY_OPEN");
         ConfluenceDecision decision = confluenceEngine.decide(ict, gann, effectiveAsof, newsVeto,
                 props.getConfluence().getWeightsVersion());
 
-        int openPositions = (int) journalRepo.countByStatus("PAPER_OPEN");
-        RiskVerdict risk = riskGate.verdict(decision, openPositions, 0.0);
+        int openPositions = (int) journalRepo.countOpenPositions();
+        Instant lastSameDirTs = decisionRepo.findTopByDirectionOrderByTsDesc(decision.direction())
+                .map(ConfluenceDecisionEntity::getTs)
+                .orElse(null);
+        var qualityCtx = marketQualityGate.contextFromBars(m5, effectiveAsof, decision.direction(),
+                lastSameDirTs, Optional.of(style.maxSpreadPts()), props.getStyle());
+        RiskVerdict risk = MarketQualityGate.mergeIntoVerdict(
+                riskGate.verdict(decision, openPositions, 0.0),
+                marketQualityGate.evaluate(qualityCtx));
+
+        // Manage any open/partial paper positions on the latest M5 bar before new alerts.
+        manageOpenPaper(m5, style, ict);
 
         persist(ict, gann, decision, risk);
         maybeAutoConfirm(decision, risk);
@@ -124,6 +141,19 @@ public class PipelineService {
                 decision.id(), decision.grade(), decision.mode(), decision.direction(),
                 decision.agreement(), risk.ok(), newsVeto, ict.quality(), gann.quality());
         return Optional.of(decision);
+    }
+
+    /** Apply PositionManager lifecycle (BE / T1 / trail / stop) to open paper rows. */
+    private void manageOpenPaper(List<OhlcBar> m5, StyleProfile style, IctSnapshot ict) {
+        if (m5 == null || m5.isEmpty()) {
+            return;
+        }
+        OhlcBar last = m5.get(m5.size() - 1);
+        String mssDir = "MSS".equals(ict.structure().event()) ? ict.structure().direction() : "none";
+        int managed = paperTrading.manageOpenPositions(last, style, m5, mssDir);
+        if (managed > 0) {
+            log.info("PositionManager updated {} open paper row(s) on bar {}", managed, last.ts());
+        }
     }
 
     private void maybeAutoConfirm(ConfluenceDecision decision, RiskVerdict risk) {

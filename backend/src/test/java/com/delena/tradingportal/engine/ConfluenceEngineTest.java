@@ -77,7 +77,7 @@ class ConfluenceEngineTest {
         var liquidity = new IctSnapshot.Liquidity(
                 List.of(new IctSnapshot.Pool("AHH", 2008, "high")), "sweep", "AHH", true);
         var entry = new IctSnapshot.Zone("OB", "bear", 2006, 2009, "fresh", asof);
-        var zones = new IctSnapshot.Zones(List.of(), List.of(), entry);
+        var zones = new IctSnapshot.Zones(List.of(), List.of(), entry, null);
         return new IctSnapshot("XAUUSD", asof, "NY_OPEN", htf, structure, liquidity, zones, 5,
                 List.of("KZ_NY_OPEN", "SWEEP_AHH", "MSS_BEAR", "DISP_OK", "OB_ACTIVE", "PD_PREMIUM"),
                 new IctSnapshot.RawRefs(List.of()));

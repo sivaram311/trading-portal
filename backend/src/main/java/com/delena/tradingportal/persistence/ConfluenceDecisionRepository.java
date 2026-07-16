@@ -11,6 +11,8 @@ public interface ConfluenceDecisionRepository extends JpaRepository<ConfluenceDe
 
     Optional<ConfluenceDecisionEntity> findTopByOrderByTsDesc();
 
+    Optional<ConfluenceDecisionEntity> findTopByDirectionOrderByTsDesc(String direction);
+
     @Query("SELECT DISTINCT d.weightsVersion FROM ConfluenceDecisionEntity d ORDER BY d.weightsVersion")
     List<String> findDistinctWeightsVersions();
 }

@@ -50,10 +50,14 @@ public record IctSnapshot(
     public record Zone(String type, String direction, double low, double high, String state, Instant ts) {
     }
 
+    public record OteZone(double deep, double sweet, double shallow, double invalidation) {
+    }
+
     public record Zones(
             List<Zone> orderBlocks,
             List<Zone> fvgs,
-            Zone activeEntry
+            Zone activeEntry,
+            OteZone activeOte
     ) {
     }
 

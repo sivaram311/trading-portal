@@ -48,7 +48,7 @@ public class OpsService {
     public SoakMetrics soak() {
         long journalDecisionCount = journalRepo.countDistinctDecisionIds();
         long distinctSessionDays = journalRepo.countDistinctSessionDays();
-        long paperOpenCount = journalRepo.countByStatus("PAPER_OPEN");
+        long paperOpenCount = journalRepo.countOpenPositions();
         long alertedCount = journalRepo.countByStatus("ALERTED");
         long rejectedCount = journalRepo.countByStatus("REJECTED");
         List<String> weightsVersions = journalRepo.findDistinctWeightsVersions();

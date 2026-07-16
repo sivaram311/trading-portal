@@ -1,9 +1,28 @@
-﻿# OPS â€” Trading Portal (DEV)
+﻿# OPS — Trading Portal (DEV)
 
 How to run and verify the DEV vertical slice (backend + engines). Paper-only; **no live execution**.
 
-- **Decision:** `agents/hires/GROK-DECISION-001.md` Â· **Arch:** `agents/pre-work/02-architecture.md`
-- **API port:** `3340` (DEV) Â· **DB:** `app_trading_portal` schema `dev` Â· **CSS clientId:** `trading-portal`
+- **Decision:** `agents/hires/GROK-DECISION-001.md` · Deep-algo: `GROK-DECISION-DEEP-ALGO.md`  
+- **Arch:** `agents/pre-work/02-architecture.md`  
+- **Deep algos:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md`  
+- **API port:** `3340` (DEV) · **DB:** `app_trading_portal` schema `dev` · **CSS clientId:** `trading-portal`  
+- **Version:** `0.3.0-SNAPSHOT` (engine-depth wave; paper-only; P5 HOLD)
+
+---
+
+## 0. Deep-algo engines (0.3 paper)
+
+| Module | Notes |
+|--------|--------|
+| OTE | `OteCalculator` — entry prefers OTE∩OB/FVG |
+| Liquidity | EQH/EQL (max 3/side, merged) + ROUND_5/10/50/100 |
+| Style | `trading.style=SCALP\|DAY\|POSITIONAL` (default DAY) |
+| QualityGate | spread / ATR extreme / gap / duplicate → deny even A+ |
+| PositionManager | BE@1R, partial T1, ATR trail; **max 1 open** (no pyramiding) |
+| Backtester | `com.delena.tradingportal.backtest` — bar-by-bar; sample CSV under `backend/target/backtest-sample-metrics.csv` |
+| Paper close | `POST /api/paper/close` `{ decision_id, exit_reason, exit_price }` |
+
+Smoke evidence: `docs/DEEP-ALGO-DEV-SMOKE-0.3.md`.
 
 ---
 
@@ -106,6 +125,7 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 | POST | `/api/paper/confirm` | yes | opens PAPER_OPEN (409 if CONFLICT/deny/F/already actioned) |
 | POST | `/api/paper/dismiss` | yes | marks DISMISSED |
 | GET | `/api/paper/journal` | yes | filter by grade/mode/direction/status/session_date/from/to |
+| POST | `/api/paper/close` | yes | close PAPER_OPEN/PARTIAL → PAPER_CLOSED (exit_reason, mfe/mae) |
 | GET | `/api/ops/soak` | yes | PREPROD soak metrics (decision count, session days, weights) |
 | GET | `/api/ops/status` | yes | Fleet observability: soak + OHLC freshness + ingest health probe + `live_enabled` guard |
 | GET | `/api/ops/weights` | yes | configured + distinct `weights_version` audit |

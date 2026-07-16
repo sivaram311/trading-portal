@@ -73,7 +73,7 @@ public class IctEngine {
         }
 
         // --- Liquidity pools + sweep/reclaim ---
-        List<IctSnapshot.Pool> pools = buildPools(m15, asof);
+        List<IctSnapshot.Pool> pools = buildPools(m15, asof, cfg);
         Sweep sweep = detectSweepReclaim(m15, pools, cfg.sweepReclaimBars());
         String liqEvent = sweep != null ? "sweep" : "none";
         String sweptPool = sweep != null ? sweep.pool().name() : null;
@@ -95,18 +95,26 @@ public class IctEngine {
             default -> { }
         }
 
-        // --- Zones: order blocks + FVGs + active entry ---
+        // --- Zones: order blocks + FVGs + OTE + active entry ---
         List<IctSnapshot.Zone> fvgs = detectFvgs(m15, cfg);
         List<IctSnapshot.Zone> obs = deriveOrderBlocks(m15, structure.direction(), displacement);
-        IctSnapshot.Zone activeEntry = selectEntry(obs, fvgs, structure.direction());
+        OteCalculator.ImpulseSwing impulse = OteCalculator.deriveImpulseSwing(swings, structure.direction());
+        OteCalculator.OteZone activeOte = impulse == null
+                ? null
+                : OteCalculator.computeOte(impulse.start(), impulse.end(), structure.direction());
+        EntrySelection entryPick = selectEntry(obs, fvgs, structure.direction(), activeOte);
+        IctSnapshot.Zone activeEntry = entryPick.zone();
         if (activeEntry != null) {
             if ("OB".equals(activeEntry.type())) {
                 reasons.add("OB_ACTIVE");
             } else {
                 reasons.add("FVG_ACTIVE");
             }
+            if (entryPick.oteOverlap()) {
+                reasons.add("OTE_ACTIVE");
+            }
         }
-        var zones = new IctSnapshot.Zones(obs, fvgs, activeEntry);
+        var zones = new IctSnapshot.Zones(obs, fvgs, activeEntry, OteCalculator.toSnapshotOte(activeOte));
 
         // HTF conflict flag (§5.3/§7): structure direction opposes HTF bias.
         if (!"none".equals(structure.direction()) && !"neutral".equals(htfBias)
@@ -127,7 +135,7 @@ public class IctEngine {
         var htf = new IctSnapshot.Htf(0, 0, 0, "EQ", "neutral");
         var structure = new IctSnapshot.Structure(List.of(), "none", "none", false);
         var liquidity = new IctSnapshot.Liquidity(List.of(), "none", null, false);
-        var zones = new IctSnapshot.Zones(List.of(), List.of(), null);
+        var zones = new IctSnapshot.Zones(List.of(), List.of(), null, null);
         return new IctSnapshot(SYMBOL, asof, null, htf, structure, liquidity, zones, 0, reasons,
                 new IctSnapshot.RawRefs(List.of()));
     }
@@ -246,7 +254,7 @@ public class IctEngine {
         return new Structure("none", "none");
     }
 
-    private static List<IctSnapshot.Pool> buildPools(List<OhlcBar> m15, Instant asof) {
+    private static List<IctSnapshot.Pool> buildPools(List<OhlcBar> m15, Instant asof, IctConfig cfg) {
         List<IctSnapshot.Pool> pools = new ArrayList<>();
         LocalDate today = NyTime.sessionDate(asof);
 
@@ -272,6 +280,16 @@ public class IctEngine {
             pools.add(new IctSnapshot.Pool("PDH", round(prevBars.stream().mapToDouble(OhlcBar::high).max().orElse(0)), "high"));
             pools.add(new IctSnapshot.Pool("PDL", round(prevBars.stream().mapToDouble(OhlcBar::low).min().orElse(0)), "low"));
         }
+
+        // EQH/EQL from M15 swings, then round-number magnets (§2.5–2.6).
+        OhlcBar last = m15.get(m15.size() - 1);
+        double mid = (last.high() + last.low()) / 2.0;
+        double atr = atr(m15, cfg.atrPeriod());
+        List<IctSnapshot.Swing> m15Swings = swings(m15, cfg.swingNM15());
+        pools.addAll(LiquidityPools.detectEqualLevels(m15Swings, cfg.equalEpsPts(), mid,
+                LiquidityPools.MAX_EQUAL_PER_SIDE));
+        pools.addAll(LiquidityPools.roundNumberPools(mid, atr));
+
         return pools;
     }
 
@@ -348,11 +366,78 @@ public class IctEngine {
         return out;
     }
 
-    private static IctSnapshot.Zone selectEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs, String direction) {
+    record EntrySelection(IctSnapshot.Zone zone, boolean oteOverlap) {
+    }
+
+    private static final double OTE_SWEET_EPS = 1.0;
+
+    static EntrySelection selectEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs,
+                                      String direction, OteCalculator.OteZone ote) {
         String want = "short".equals(direction) ? "bear" : "long".equals(direction) ? "bull" : null;
         if (want == null) {
-            return null;
+            return new EntrySelection(null, false);
         }
+        List<IctSnapshot.Zone> candidates = new ArrayList<>();
+        for (IctSnapshot.Zone z : obs) {
+            if (z.direction().equals(want)) {
+                candidates.add(z);
+            }
+        }
+        for (IctSnapshot.Zone z : fvgs) {
+            if (z.direction().equals(want)) {
+                candidates.add(z);
+            }
+        }
+        if (candidates.isEmpty()) {
+            return new EntrySelection(null, false);
+        }
+        if (ote == null) {
+            return new EntrySelection(fallbackEntry(obs, fvgs, want), false);
+        }
+
+        IctSnapshot.Zone best = null;
+        int bestScore = -1;
+        boolean bestOteOverlap = false;
+        for (IctSnapshot.Zone z : candidates) {
+            int score = scoreEntryCandidate(z, ote);
+            boolean overlap = OteCalculator.overlapsOte(z, ote);
+            if (score > bestScore || (score == bestScore && preferObOverFvg(z, best))) {
+                best = z;
+                bestScore = score;
+                bestOteOverlap = overlap;
+            }
+        }
+        if (bestScore <= 0) {
+            return new EntrySelection(fallbackEntry(obs, fvgs, want), false);
+        }
+        return new EntrySelection(best, bestOteOverlap);
+    }
+
+    private static int scoreEntryCandidate(IctSnapshot.Zone z, OteCalculator.OteZone ote) {
+        int score = 0;
+        if (OteCalculator.overlapsOte(z, ote)) {
+            score += 2;
+        }
+        if (OteCalculator.nearSweetSpot(z, ote, OTE_SWEET_EPS)) {
+            score += 1;
+        }
+        if ("fresh".equals(z.state()) || "partial".equals(z.state())) {
+            score += 1;
+        }
+        return score;
+    }
+
+    private static boolean preferObOverFvg(IctSnapshot.Zone candidate, IctSnapshot.Zone currentBest) {
+        if (currentBest == null) {
+            return true;
+        }
+        if ("OB".equals(candidate.type()) && !"OB".equals(currentBest.type())) {
+            return true;
+        }
+        return false;
+    }
+
+    private static IctSnapshot.Zone fallbackEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs, String want) {
         for (IctSnapshot.Zone z : obs) {
             if (z.direction().equals(want)) {
                 return z;
