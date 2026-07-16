@@ -8,10 +8,37 @@ child, never the ingest worker.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 
 MAX_MT5_COPY_COUNT = 10000
+
+
+def _init_kwargs(path: str) -> dict:
+    """Build MetaTrader5.initialize kwargs. When login/server/password are set
+    (INGEST_MT5_LOGIN / INGEST_MT5_SERVER / INGEST_MT5_PASSWORD), a login-based
+    init is used so the package launches and logs into its own in-session
+    terminal instead of attaching to a foreign-session (e.g. SYSTEM) one."""
+    kwargs: dict = {}
+    if path:
+        kwargs["path"] = path
+    login = os.environ.get("INGEST_MT5_LOGIN", "").strip()
+    server = os.environ.get("INGEST_MT5_SERVER", "").strip()
+    password = os.environ.get("INGEST_MT5_PASSWORD", "")
+    if login:
+        try:
+            kwargs["login"] = int(login)
+        except ValueError:
+            pass
+    if server:
+        kwargs["server"] = server
+    if password:
+        kwargs["password"] = password
+    if os.environ.get("INGEST_MT5_PORTABLE", "").strip().lower() in ("1", "true", "yes", "on"):
+        kwargs["portable"] = True
+    kwargs["timeout"] = int(os.environ.get("INGEST_MT5_INIT_TIMEOUT_MS", "60000"))
+    return kwargs
 
 
 def _timeframe_map():
@@ -34,10 +61,7 @@ def cmd_probe(path: str) -> int:
         json.dump({"ok": False, "detail": f"MetaTrader5 package not installed: {exc}"}, sys.stdout)
         return 0
 
-    kwargs: dict = {}
-    if path:
-        kwargs["path"] = path
-    ok = mt5.initialize(**kwargs)
+    ok = mt5.initialize(**_init_kwargs(path))
     if ok:
         try:
             mt5.shutdown()
@@ -60,10 +84,7 @@ def cmd_fetch(symbol: str, timeframe: str, count: str, path: str) -> int:
         json.dump({"ok": False, "detail": f"MetaTrader5 package not installed: {exc}"}, sys.stdout)
         return 1
 
-    kwargs: dict = {}
-    if path:
-        kwargs["path"] = path
-    if not mt5.initialize(**kwargs):
+    if not mt5.initialize(**_init_kwargs(path)):
         json.dump(
             {"ok": False, "detail": f"MetaTrader5.initialize() failed: {mt5.last_error()}"},
             sys.stdout,

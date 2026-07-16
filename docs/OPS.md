@@ -115,6 +115,27 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 - **News veto:** `trading.news.blackouts[]` — absolute `start`/`end` instants or recurring `ny-start`/`ny-end` (+ optional `weekday`). When `asof` falls inside any window, confluence → `NEWS_VETO` / grade `F` / `deny`. Empty list = no veto.
 - **A+ auto-confirm:** `trading.paper.auto-confirm-a-plus=false` (default OFF on all envs). When ON, pipeline auto-opens `PAPER_OPEN` for ALERTED A+ with risk ok and no existing open position.
 
+## 8a. MT5 live ingest (real OHLC)
+
+The `MetaTrader5` Python API needs a **login-based** init and a terminal in the
+**same Windows session/user** as the worker (attaching to a SYSTEM/Session-0
+terminal hangs the IPC). Credentials live in a non-git secrets file
+`E:\MyAgent\workflow\db\secrets\mt5.env` and are loaded by the `run-ingest-*.ps1`
+scripts:
+
+```
+INGEST_MT5_PATH=E:\ProgramFiles\MT5\terminal64.exe
+INGEST_MT5_LOGIN=<account>
+INGEST_MT5_SERVER=<broker-server>
+INGEST_MT5_PASSWORD=<password>   # never commit
+```
+
+With that set, `mt5` mode launches/logs into its own in-session terminal and
+pulls real bars. Verified 2026-07-16 on DEV: 200 bars/tf for M1..D1 XAUUSD
+(OctaFX-Demo). Backend recompute produced a real graded decision. Column
+contract matches Flyway `ohlc_candle` (`symbol,tf,ts,ny_time,...`; upsert on
+`(symbol,tf,ts)`).
+
 ## 8b. PREPROD paper soak runbook
 
 **Gate (DECISION-001):** ≥ **30** journaled decisions **or** ≥ **10** distinct `session_date` days (whichever first).

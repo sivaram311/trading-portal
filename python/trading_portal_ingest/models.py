@@ -26,21 +26,18 @@ class Bar:
     source: str = "seed"
 
     def as_row(self) -> tuple:
-        # ny_time column is naive TIMESTAMP (America/New_York wall-clock) — see
-        # ddl.py docstring. Strip tzinfo explicitly so the literal NY hour/minute
-        # is what lands in the DB, independent of psycopg2/libpq protocol quirks
-        # around tz-aware datetimes inserted into a naive column.
-        ny_time_naive = self.ny_time.replace(tzinfo=None) if self.ny_time.tzinfo else self.ny_time
+        # Columns match the backend Flyway table (SoT): symbol, tf, ts, ny_time,
+        # open, high, low, close, volume, broker_time. ny_time is timestamptz in
+        # the backend schema, so keep it tz-aware.
         return (
             self.symbol,
             self.timeframe,
             self.ts_utc,
-            ny_time_naive,
+            self.ny_time,
             self.open,
             self.high,
             self.low,
             self.close,
             self.volume,
             self.broker_time,
-            self.source,
         )

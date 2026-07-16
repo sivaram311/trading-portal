@@ -45,6 +45,17 @@ Get-Content $SecretsFile | ForEach-Object {
     Set-Item -Path "Env:$key" -Value $value
 }
 
+$Mt5Secrets = 'E:\MyAgent\workflow\db\secrets\mt5.env'
+if (Test-Path $Mt5Secrets) {
+    Get-Content $Mt5Secrets | ForEach-Object {
+        $l = $_.Trim()
+        if ($l -eq '' -or $l.StartsWith('#')) { return }
+        $i = $l.IndexOf('=')
+        if ($i -lt 1) { return }
+        Set-Item -Path ("Env:" + $l.Substring(0, $i).Trim()) -Value $l.Substring($i + 1).Trim()
+    }
+}
+
 $env:INGEST_ENV = 'prod'
 if (-not $env:INGEST_SYMBOL) { $env:INGEST_SYMBOL = 'XAUUSD' }
 if (-not $env:INGEST_TIMEFRAMES) { $env:INGEST_TIMEFRAMES = 'M1,M5,M15,H1,H4,D1' }

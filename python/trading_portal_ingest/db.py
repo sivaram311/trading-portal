@@ -14,10 +14,11 @@ from .models import Bar
 
 logger = logging.getLogger(__name__)
 
+# Column names match the backend Flyway migration (SoT): V1__init.sql ohlc_candle.
 _UPSERT_COLUMNS = (
     "symbol",
-    "timeframe",
-    "ts_utc",
+    "tf",
+    "ts",
     "ny_time",
     "open",
     "high",
@@ -25,7 +26,6 @@ _UPSERT_COLUMNS = (
     "close",
     "volume",
     "broker_time",
-    "source",
 )
 
 
@@ -79,16 +79,14 @@ def upsert_bars(conn, schema: str, bars: Iterable[Bar], table: str = TABLE_NAME)
         """
         INSERT INTO {schema}.{table} ({cols})
         VALUES %s
-        ON CONFLICT (symbol, timeframe, ts_utc) DO UPDATE SET
+        ON CONFLICT (symbol, tf, ts) DO UPDATE SET
             ny_time = EXCLUDED.ny_time,
             open = EXCLUDED.open,
             high = EXCLUDED.high,
             low = EXCLUDED.low,
             close = EXCLUDED.close,
             volume = EXCLUDED.volume,
-            broker_time = EXCLUDED.broker_time,
-            source = EXCLUDED.source,
-            updated_at = now()
+            broker_time = EXCLUDED.broker_time
         """
     ).format(
         schema=sql.Identifier(schema),
@@ -105,7 +103,7 @@ def upsert_bars(conn, schema: str, bars: Iterable[Bar], table: str = TABLE_NAME)
 def latest_bar_ts(conn, schema: str, symbol: str, timeframe: str, table: str = TABLE_NAME):
     """Return the newest ``ts_utc`` stored for symbol/timeframe, or None."""
     query = sql.SQL(
-        "SELECT max(ts_utc) FROM {schema}.{table} WHERE symbol = %s AND timeframe = %s"
+        "SELECT max(ts) FROM {schema}.{table} WHERE symbol = %s AND tf = %s"
     ).format(schema=sql.Identifier(schema), table=sql.Identifier(table))
     with conn.cursor() as cur:
         cur.execute(query, (symbol, timeframe))
@@ -116,7 +114,7 @@ def latest_bar_ts(conn, schema: str, symbol: str, timeframe: str, table: str = T
 def count_bars(conn, schema: str, symbol: str, timeframe: str | None = None, table: str = TABLE_NAME) -> int:
     if timeframe:
         query = sql.SQL(
-            "SELECT count(*) FROM {schema}.{table} WHERE symbol = %s AND timeframe = %s"
+            "SELECT count(*) FROM {schema}.{table} WHERE symbol = %s AND tf = %s"
         ).format(schema=sql.Identifier(schema), table=sql.Identifier(table))
         params = (symbol, timeframe)
     else:

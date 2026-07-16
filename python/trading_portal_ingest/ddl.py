@@ -40,26 +40,23 @@ TABLE_NAME = "ohlc_candle"
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS {schema}.{table} (
     id           BIGSERIAL PRIMARY KEY,
-    symbol       VARCHAR(20)       NOT NULL,
-    timeframe    VARCHAR(5)        NOT NULL,
-    ts_utc       TIMESTAMPTZ       NOT NULL,
-    ny_time      TIMESTAMP         NOT NULL,
+    symbol       VARCHAR(16)       NOT NULL,
+    tf           VARCHAR(4)        NOT NULL,
+    ts           TIMESTAMPTZ       NOT NULL,
+    ny_time      TIMESTAMPTZ       NOT NULL,
     open         DOUBLE PRECISION  NOT NULL,
     high         DOUBLE PRECISION  NOT NULL,
     low          DOUBLE PRECISION  NOT NULL,
     close        DOUBLE PRECISION  NOT NULL,
     volume       DOUBLE PRECISION  NOT NULL DEFAULT 0,
     broker_time  TIMESTAMPTZ       NULL,
-    source       VARCHAR(16)       NOT NULL DEFAULT 'seed',
-    created_at   TIMESTAMPTZ       NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ       NOT NULL DEFAULT now(),
-    CONSTRAINT {uq_constraint} UNIQUE (symbol, timeframe, ts_utc)
+    CONSTRAINT {uq_constraint} UNIQUE (symbol, tf, ts)
 );
 """
 
 _CREATE_INDEX = """
 CREATE INDEX IF NOT EXISTS {index_name}
-    ON {schema}.{table} (symbol, timeframe, ts_utc DESC);
+    ON {schema}.{table} (symbol, tf, ts DESC);
 """
 
 
@@ -72,7 +69,7 @@ def ensure_ohlc_candle_table(conn, schema: str, table: str = TABLE_NAME) -> None
     create_table = sql.SQL(_CREATE_TABLE).format(
         schema=sql.Identifier(schema),
         table=sql.Identifier(table),
-        uq_constraint=sql.Identifier(f"uq_{table}_symbol_tf_ts"),
+        uq_constraint=sql.Identifier(f"uq_ohlc_symbol_tf_ts"),
     )
     create_index = sql.SQL(_CREATE_INDEX).format(
         schema=sql.Identifier(schema),
