@@ -18,6 +18,7 @@ public class TradingProperties {
     private final Security security = new Security();
     private final Paper paper = new Paper();
     private final News news = new News();
+    private final Ops ops = new Ops();
 
     public Exec getExec() {
         return exec;
@@ -41,6 +42,10 @@ public class TradingProperties {
 
     public News getNews() {
         return news;
+    }
+
+    public Ops getOps() {
+        return ops;
     }
 
     /** Live-execution guard. There is no live adapter in this slice; this must stay false. */
@@ -150,6 +155,30 @@ public class TradingProperties {
 
         public void setBlackouts(List<BlackoutWindow> blackouts) {
             this.blackouts = blackouts != null ? blackouts : new ArrayList<>();
+        }
+    }
+
+    /** Observability / fleet probes (paper-only; no broker). */
+    public static class Ops {
+        /** Optional Python ingest health URL (e.g. http://127.0.0.1:3342/health). Empty = skip probe. */
+        private String ingestHealthUrl = "";
+        /** OHLC freshness warn threshold in seconds (default 2h). */
+        private long ohlcStaleAfterSeconds = 7200;
+
+        public String getIngestHealthUrl() {
+            return ingestHealthUrl;
+        }
+
+        public void setIngestHealthUrl(String ingestHealthUrl) {
+            this.ingestHealthUrl = ingestHealthUrl != null ? ingestHealthUrl : "";
+        }
+
+        public long getOhlcStaleAfterSeconds() {
+            return ohlcStaleAfterSeconds;
+        }
+
+        public void setOhlcStaleAfterSeconds(long ohlcStaleAfterSeconds) {
+            this.ohlcStaleAfterSeconds = ohlcStaleAfterSeconds;
         }
     }
 

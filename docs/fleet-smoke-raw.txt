@@ -1,0 +1,8 @@
+﻿checked_at=2026-07-16T23:49:00+05:30
+[dev] api=:3340 {ok db=True ingest=True} | ingest=:3342 {ok mode=mt5 db=True} | ops={level=OK soak_met=False decisions=3 live=False ingest_ok=True}
+[preprod] api=:4340 {ok db=True ingest=True} | ingest=:4342 {ok mode=mt5 db=True} | ops={level=OK soak_met=True decisions=30 live=False ingest_ok=True}
+[prod] api=:5340 {ok db=True ingest=True} | ingest=:5342 {DOWN/unreachable} | ops={level=WARN soak_met=False decisions=2 live=False ingest_ok=False}
+[preprod-paper] decision grade=C mode=NONE dir=short id=6898df94-af27-4124-9d46-74b5a2bd175e
+[preprod-paper] journal ok items=5 total=30
+[preprod-paper] replay ok grade=F id=1e10ed77-c955-4f79-97e7-553033a4d0c3
+[pg] 2026-07-16T23:49:06+05:30 level=OK app_conns=14 total=23 max_connections=150 warn=70 crit=85 roles=[app_trading_portal_prod=2; app_css_preprod=2; app_css_prod=2; app_trading_portal_dev=2; app_trading_portal_preprod=2; app_agent_portal_preprod=1; app_agent_portal_prod=1; app_css_dev=1; app_agent_portal_dev=1]

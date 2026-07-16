@@ -40,6 +40,12 @@ public class OpsController {
         return ops.weights();
     }
 
+    /** Fleet observability: soak + OHLC freshness + ingest health probe + live-exec guard. */
+    @GetMapping("/status")
+    public OpsService.FleetStatus status() {
+        return ops.status();
+    }
+
     /**
      * Recompute ICT + Gann + confluence from stored OHLC up to {@code asof} (default now).
      * Persists a new decision row and journal entry — same pipeline as startup recompute.

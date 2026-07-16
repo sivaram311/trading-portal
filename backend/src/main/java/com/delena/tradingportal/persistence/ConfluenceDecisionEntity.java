@@ -82,6 +82,10 @@ public class ConfluenceDecisionEntity {
         return grade;
     }
 
+    public String getWeightsVersion() {
+        return weightsVersion;
+    }
+
     public String getAutomation() {
         return automation;
     }

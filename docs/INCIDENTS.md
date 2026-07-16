@@ -5,6 +5,14 @@ Paper-only system; no live execution involved in any entry below.
 
 ---
 
+## INC-2026-07-16-05 — Cross-env schema pollution via inherited `SPRING_DATASOURCE_*` (SEV-3)
+
+- **Symptom:** PREPROD `/api/ops/soak` reported `soak_met=false` / 2 decisions while SQL showed 30 rows in `preprod.paper_journal` (matched **prod** counts).
+- **Root cause:** Agent shell retained `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` from CSS/agent-portal launches; Spring Boot env binding overrode profile JDBC URL → wrong schema.
+- **Fix:** F:/G: `start.ps1` clears those env vars and pins `--spring.datasource.url=...?currentSchema=<env>` + username/password + hibernate default_schema. Templates in `scripts/start-preprod.ps1` / `start-prod.ps1`.
+
+---
+
 ## INC-2026-07-16-04 — Postgres connection saturation (SEV-3)
 
 - **When:** 2026-07-16, during 0.2.0 real-MT5 ingest validation.

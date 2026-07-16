@@ -9,10 +9,10 @@
 
 | # | Track | Owner | Why | Live-risk | Status |
 |---|-------|-------|-----|-----------|--------|
-| 1 | Ops closeout (AP DEV Hikari + PG monitor warn≥70/crit≥85) | cursor/ops | INC leftover | none | in progress |
-| 2 | Track E PREPROD soak → `soak_met=true` | ops+QA | Close DECISION-001 gate waived for Q2 | none | next |
-| 3 | Observability harden | backend+ops | Fleet under real MT5 | none | pending |
-| 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | pending |
+| 1 | Ops closeout (AP DEV Hikari + PG monitor warn≥70/crit≥85) | cursor/ops | INC leftover | none | **done** |
+| 2 | Track E PREPROD soak → `soak_met=true` | ops+QA | Close DECISION-001 gate waived for Q2 | none | **done** |
+| 3 | Observability harden | backend+ops | Fleet under real MT5 | none | **done** |
+| 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | **done** |
 | 5 | Engine depth | engines | Only if soak gaps demand | none | defer |
 | 6 | P5 micro-live | — | User GO + soak_met | **blocked** | HOLD |
 
@@ -32,7 +32,10 @@
 - [x] PREPROD MT5 daemon `:4342` healthy (`last_mode=mt5`)
 - [x] PREPROD soak **`soak_met=true`** (journal_decision_count=30 via ops/replay over stored OHLC; distinct_session_days=6)
 - [x] ROADMAP-0.2 Track E closed
+- [x] **Track 3:** `GET /api/ops/status` (soak + OHLC freshness + ingest probe + live guard); `scripts/check-fleet.ps1`; PG monitor hook
+- [x] **Track 4:** PREPROD paper-path smoke (decision/journal/replay) — evidence `docs/FLEET-SMOKE-0.3.md`
+- [x] Hardened F:/G: `start.ps1` — clear inherited `SPRING_DATASOURCE_*`, pin schema (fix cross-env pollution)
 
 ## Version
 
-Develop as **0.3.0-SNAPSHOT** on DEV; next tracks = observability harden + paper-path reliability. Tag only after Reviewer GO when user asks. P5 remains HOLD.
+Develop as **0.3.0-SNAPSHOT** on DEV; tracks 1–4 closed. Remaining: engine depth (defer) + P5 HOLD. Tag only after Reviewer GO when user asks.

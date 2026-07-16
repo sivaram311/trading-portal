@@ -107,6 +107,7 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 | POST | `/api/paper/dismiss` | yes | marks DISMISSED |
 | GET | `/api/paper/journal` | yes | filter by grade/mode/direction/status/session_date/from/to |
 | GET | `/api/ops/soak` | yes | PREPROD soak metrics (decision count, session days, weights) |
+| GET | `/api/ops/status` | yes | Fleet observability: soak + OHLC freshness + ingest health probe + `live_enabled` guard |
 | GET | `/api/ops/weights` | yes | configured + distinct `weights_version` audit |
 | POST | `/api/ops/replay` | yes | recompute decision at `?asof=ISO-8601` (default now) from stored OHLC |
 
@@ -185,6 +186,18 @@ profiles) **and** passed as override args in the deployed `F:`/`G:` `start.ps1`
 `pg_terminate_backend` is **emergency-only**; do not use it as a steady-state fix.
 Cross-app caps + `max_connections` 100→150 are **DONE** (user GO 2026-07-16) —
 see `E:\MyAgent\workflow\db\PROPOSAL-2026-07-16-pool-caps.md`. Post-roll: ~19 total conns.
+
+## 8d. Fleet observability (0.3)
+
+```powershell
+# Auth probes use per-env CSS (:9000 / :4910 / :5910)
+powershell -File scripts\check-fleet.ps1 -WithAuth
+```
+
+- **API:** `GET /api/ops/status` — soak + OHLC freshness + ingest health URL probe + `live_enabled` guard.
+- **Config:** `trading.ops.ingest-health-url` (3342/4342/5342 per env), `trading.ops.ohlc-stale-after-seconds` (default 7200).
+- **Evidence:** `docs/FLEET-SMOKE-0.3.md`
+- **Start scripts:** F:/G: `start.ps1` (templates in `scripts/start-preprod.ps1` / `start-prod.ps1`) clear inherited `SPRING_DATASOURCE_*` and pin schema — prevents cross-env shell pollution.
 
 ## 9. Engines (source of truth = docs)
 

@@ -33,3 +33,5 @@ Append newest at top.
 | 2026-07-16 ~22:51 | incident+ops (cursor+grok) | **INC-2026-07-16-04** PG conn saturation (106/100): root cause = 8 backends × Hikari default 10 idle. Grok `VERDICT=PROCEED`. Capped trading-portal Hikari (max-pool=5) in application.properties + deployed start.ps1; rolled live dev/preprod/prod (0.2.0 jar unchanged); PG total→59. Traced 4 session incidents in `docs/INCIDENTS.md`; OPS §8c pool runbook. Cross-app caps + max_connections 100→150 pending owner GO. |
 
 | 2026-07-16 ~23:32 | roadmap 0.3 (cursor; agy-fail→grok) | Grok PROCEED 0.3.0-SNAPSHOT: ops closeout + PREPROD soak NOW, P5 HOLD. AP DEV :8080 hikari=5; PG monitor script + Task `MyAgent-PG-Connection-Check` 5m; PREPROD MT5 :4342 ok; **soak_met=true** (30 journal decisions). Next: observability + paper-path reliability. |
+
+| 2026-07-16 ~23:50 | roadmap 0.3 t3+t4 (cursor) | **Observability + paper-path done:** `GET /api/ops/status`, `scripts/check-fleet.ps1`, F/G start.ps1 schema pin (fix SPRING_DATASOURCE pollution). Fleet smoke: PREPROD soak_met=true decisions=30; paper decision/journal/replay OK. Evidence `docs/FLEET-SMOKE-0.3.md`. P5 HOLD. Engine depth deferred. |
