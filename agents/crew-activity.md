@@ -27,3 +27,7 @@ Append newest at top.
 | 2026-07-16 ~21:05 | lead+e2e (cursor) | Roadmap 0.2 wave1 done: MT5 subprocess timeout (IPC no-hang), H4/D1 defaults, P4 ops soak/weights/replay, ICT HTF H4?H1, news calendar, A+ auto-confirm OFF; P5 HOLD design; public DEV E2E **9/9 PASS** on trading-portal-dev.delena.buzz with CSS_ADMIN_PASSWORD (slot claim/release); soak_met=false on DEV (1/1). |
 
 | 2026-07-16 ~22:15 | promote crew (cursor+agy) | **v0.2.0** Q1+Q2 GO live F:/G:; UI flatten browser/; soak waived; MT5 still unavailable; P5 HOLD |
+
+| 2026-07-16 ~22:36 | ingest+ops (cursor) | Real MT5 live ingest on **dev/preprod/prod** (login-based OctaFX-Demo); DEV daemon :3342 (60s, health ok, last_mode mt5 M1-D1); recompute grade C/NONE/short on all 3 envs (live gold ~4712). Freed 80 idle PG conns (CSS pools ~40 idle = systemic saturation risk vs max_connections 100). |
+
+| 2026-07-16 ~22:51 | incident+ops (cursor+grok) | **INC-2026-07-16-04** PG conn saturation (106/100): root cause = 8 backends × Hikari default 10 idle. Grok `VERDICT=PROCEED`. Capped trading-portal Hikari (max-pool=5) in application.properties + deployed start.ps1; rolled live dev/preprod/prod (0.2.0 jar unchanged); PG total→59. Traced 4 session incidents in `docs/INCIDENTS.md`; OPS §8c pool runbook. Cross-app caps + max_connections 100→150 pending owner GO. |

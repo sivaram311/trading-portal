@@ -159,6 +159,33 @@ If MT5 unavailable, seed is OK for UI/API soak **instrumentation** only — mark
 
 **2026-07-16 ~22:07 IST** — `E:\MyWorkspace\trading-portal\python\.venv\Scripts\python.exe -m trading_portal_ingest check-mt5`: **unavailable** (MT5 subprocess timed out after 10.0s — IPC hang; exit 1). Use seed ingest for soak instrumentation until terminal reachable; mark evidence seed-backed.
 
+## 8c. Postgres connection pool (shared :5432)
+
+The Postgres instance at `127.0.0.1:5432` is **multi-tenant** (CSS, agent-portal,
+trading-portal — each across dev/preprod/prod). It has `max_connections=100`
+(~97 usable). To avoid saturation (see `docs/INCIDENTS.md` INC-2026-07-16-04),
+trading-portal caps HikariCP:
+
+```
+spring.datasource.hikari.maximum-pool-size=5
+spring.datasource.hikari.minimum-idle=1
+spring.datasource.hikari.idle-timeout=30000
+spring.datasource.hikari.keepalive-time=30000
+```
+
+Set in `backend/src/main/resources/application.properties` (inherited by all
+profiles) **and** passed as override args in the deployed `F:`/`G:` `start.ps1`
+(so the tagged jar stays byte-identical). Inspect live usage:
+
+```powershell
+& 'C:\Program Files\PostgreSQL\18\bin\psql.exe' -U postgres -d postgres -c `
+  "SELECT usename, count(*), count(*) FILTER (WHERE state='idle') idle FROM pg_stat_activity GROUP BY usename ORDER BY 2 DESC;"
+```
+
+`pg_terminate_backend` is **emergency-only**; do not use it as a steady-state fix.
+Cross-app caps + a `max_connections` bump are proposed in
+`E:\MyAgent\workflow\db\PROPOSAL-2026-07-16-pool-caps.md` (needs owner GO).
+
 ## 9. Engines (source of truth = docs)
 
 `com.delena.tradingportal.engine.*`, pure compute over stored OHLC:
