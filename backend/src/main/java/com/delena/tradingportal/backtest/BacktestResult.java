@@ -69,4 +69,61 @@ public record BacktestResult(
     static BacktestResult empty(TradingStyle style) {
         return new BacktestResult(style, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, List.of());
     }
+
+    /** R-multiple sequence in trade order (for Monte-Carlo shuffle). */
+    public List<Double> rMultiples() {
+        return trades.stream().map(TradeSummary::rMultiple).toList();
+    }
+
+    /** Cumulative R equity curve from closed trades. */
+    public List<Double> equityCurve() {
+        return cumulativeEquity(trades);
+    }
+
+    /** Recompute headline metrics from an arbitrary trade subset (e.g. walk-forward test window). */
+    public static BacktestResult fromTrades(TradingStyle style, int barsProcessed, List<TradeSummary> trades) {
+        return fromTrades(style, barsProcessed, trades, null);
+    }
+
+    static BacktestResult fromTrades(TradingStyle style, int barsProcessed,
+                                     List<TradeSummary> trades, List<Double> equitySteps) {
+        int n = trades.size();
+        if (n == 0) {
+            return empty(style);
+        }
+
+        double totalR = trades.stream().mapToDouble(TradeSummary::rMultiple).sum();
+        long wins = trades.stream().filter(t -> t.rMultiple() > 0).count();
+        double winRate = (double) wins / n;
+
+        double grossProfit = trades.stream().filter(t -> t.rMultiple() > 0)
+                .mapToDouble(TradeSummary::rMultiple).sum();
+        double grossLoss = Math.abs(trades.stream().filter(t -> t.rMultiple() < 0)
+                .mapToDouble(TradeSummary::rMultiple).sum());
+        double profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? 999.99 : 0.0);
+
+        double expectancyR = totalR / n;
+
+        List<Double> curve = equitySteps == null || equitySteps.isEmpty()
+                ? cumulativeEquity(trades) : equitySteps;
+        double maxDdPct = Backtester.maxDrawdownPct(curve);
+
+        double avgWin = trades.stream().filter(t -> t.rMultiple() > 0)
+                .mapToDouble(TradeSummary::rMultiple).average().orElse(0.0);
+        double avgLoss = trades.stream().filter(t -> t.rMultiple() < 0)
+                .mapToDouble(TradeSummary::rMultiple).average().orElse(0.0);
+
+        return new BacktestResult(style, barsProcessed, n, winRate, profitFactor, expectancyR,
+                maxDdPct, avgWin, avgLoss, totalR, List.copyOf(trades));
+    }
+
+    private static List<Double> cumulativeEquity(List<TradeSummary> trades) {
+        List<Double> curve = new java.util.ArrayList<>();
+        double eq = 0.0;
+        for (TradeSummary t : trades) {
+            eq += t.rMultiple();
+            curve.add(eq);
+        }
+        return curve;
+    }
 }

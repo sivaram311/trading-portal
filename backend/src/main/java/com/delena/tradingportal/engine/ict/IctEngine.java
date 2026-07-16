@@ -95,26 +95,34 @@ public class IctEngine {
             default -> { }
         }
 
-        // --- Zones: order blocks + FVGs + OTE + active entry ---
+        // --- Zones: order blocks + FVGs + breakers + IFVGs + OTE + active entry ---
         List<IctSnapshot.Zone> fvgs = detectFvgs(m15, cfg);
         List<IctSnapshot.Zone> obs = deriveOrderBlocks(m15, structure.direction(), displacement);
+        List<IctSnapshot.Zone> breakers = deriveBreakers(m15, obs);
+        List<IctSnapshot.Zone> ifvgs = deriveIfvgs(m15, fvgs);
         OteCalculator.ImpulseSwing impulse = OteCalculator.deriveImpulseSwing(swings, structure.direction());
         OteCalculator.OteZone activeOte = impulse == null
                 ? null
                 : OteCalculator.computeOte(impulse.start(), impulse.end(), structure.direction());
-        EntrySelection entryPick = selectEntry(obs, fvgs, structure.direction(), activeOte);
+        EntrySelection entryPick = selectEntry(obs, fvgs, breakers, ifvgs, structure.direction(), activeOte);
         IctSnapshot.Zone activeEntry = entryPick.zone();
         if (activeEntry != null) {
-            if ("OB".equals(activeEntry.type())) {
-                reasons.add("OB_ACTIVE");
-            } else {
-                reasons.add("FVG_ACTIVE");
+            switch (activeEntry.type()) {
+                case "OB" -> reasons.add("OB_ACTIVE");
+                case "FVG" -> reasons.add("FVG_ACTIVE");
+                case "BREAKER" -> reasons.add("BREAKER_ACTIVE");
+                case "IFVG" -> reasons.add("IFVG_ACTIVE");
+                default -> { }
             }
             if (entryPick.oteOverlap()) {
                 reasons.add("OTE_ACTIVE");
             }
+            if (entryPick.unicorn()) {
+                reasons.add("UNICORN");
+            }
         }
-        var zones = new IctSnapshot.Zones(obs, fvgs, activeEntry, OteCalculator.toSnapshotOte(activeOte));
+        var zones = new IctSnapshot.Zones(obs, fvgs, breakers, ifvgs, activeEntry,
+                OteCalculator.toSnapshotOte(activeOte));
 
         // HTF conflict flag (§5.3/§7): structure direction opposes HTF bias.
         if (!"none".equals(structure.direction()) && !"neutral".equals(htfBias)
@@ -135,7 +143,7 @@ public class IctEngine {
         var htf = new IctSnapshot.Htf(0, 0, 0, "EQ", "neutral");
         var structure = new IctSnapshot.Structure(List.of(), "none", "none", false);
         var liquidity = new IctSnapshot.Liquidity(List.of(), "none", null, false);
-        var zones = new IctSnapshot.Zones(List.of(), List.of(), null, null);
+        var zones = new IctSnapshot.Zones(List.of(), List.of(), List.of(), List.of(), null, null);
         return new IctSnapshot(SYMBOL, asof, null, htf, structure, liquidity, zones, 0, reasons,
                 new IctSnapshot.RawRefs(List.of()));
     }
@@ -366,54 +374,106 @@ public class IctEngine {
         return out;
     }
 
-    record EntrySelection(IctSnapshot.Zone zone, boolean oteOverlap) {
+    record EntrySelection(IctSnapshot.Zone zone, boolean oteOverlap, boolean unicorn) {
     }
 
     private static final double OTE_SWEET_EPS = 1.0;
 
     static EntrySelection selectEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs,
+                                      List<IctSnapshot.Zone> breakers, List<IctSnapshot.Zone> ifvgs,
                                       String direction, OteCalculator.OteZone ote) {
         String want = "short".equals(direction) ? "bear" : "long".equals(direction) ? "bull" : null;
         if (want == null) {
-            return new EntrySelection(null, false);
+            return new EntrySelection(null, false, false);
         }
         List<IctSnapshot.Zone> candidates = new ArrayList<>();
-        for (IctSnapshot.Zone z : obs) {
-            if (z.direction().equals(want)) {
-                candidates.add(z);
-            }
-        }
-        for (IctSnapshot.Zone z : fvgs) {
-            if (z.direction().equals(want)) {
-                candidates.add(z);
-            }
-        }
+        addDirectional(candidates, obs, want);
+        addDirectional(candidates, fvgs, want);
+        addDirectional(candidates, breakers, want);
+        addDirectional(candidates, ifvgs, want);
         if (candidates.isEmpty()) {
-            return new EntrySelection(null, false);
+            return new EntrySelection(null, false, false);
         }
         if (ote == null) {
-            return new EntrySelection(fallbackEntry(obs, fvgs, want), false);
+            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false);
         }
 
         IctSnapshot.Zone best = null;
         int bestScore = -1;
         boolean bestOteOverlap = false;
+        boolean bestUnicorn = false;
         for (IctSnapshot.Zone z : candidates) {
-            int score = scoreEntryCandidate(z, ote);
+            int score = scoreEntryCandidate(z, ote, breakers, fvgs, ifvgs);
             boolean overlap = OteCalculator.overlapsOte(z, ote);
-            if (score > bestScore || (score == bestScore && preferObOverFvg(z, best))) {
+            boolean unicorn = isUnicornCandidate(z, breakers, fvgs, ifvgs);
+            if (score > bestScore || (score == bestScore && preferZoneType(z, best))) {
                 best = z;
                 bestScore = score;
                 bestOteOverlap = overlap;
+                bestUnicorn = unicorn;
             }
         }
         if (bestScore <= 0) {
-            return new EntrySelection(fallbackEntry(obs, fvgs, want), false);
+            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false);
         }
-        return new EntrySelection(best, bestOteOverlap);
+        return new EntrySelection(best, bestOteOverlap, bestUnicorn);
     }
 
-    private static int scoreEntryCandidate(IctSnapshot.Zone z, OteCalculator.OteZone ote) {
+    private static void addDirectional(List<IctSnapshot.Zone> out, List<IctSnapshot.Zone> zones, String want) {
+        for (IctSnapshot.Zone z : zones) {
+            if (z.direction().equals(want)) {
+                out.add(z);
+            }
+        }
+    }
+
+    static List<IctSnapshot.Zone> deriveBreakers(List<OhlcBar> bars, List<IctSnapshot.Zone> obs) {
+        List<IctSnapshot.Zone> breakers = new ArrayList<>();
+        for (IctSnapshot.Zone ob : obs) {
+            int obIdx = barIndex(bars, ob.ts());
+            if (obIdx < 0) {
+                continue;
+            }
+            for (int i = obIdx + 1; i < bars.size(); i++) {
+                OhlcBar b = bars.get(i);
+                if ("bull".equals(ob.direction()) && b.close() < ob.low()) {
+                    breakers.add(new IctSnapshot.Zone("BREAKER", "bear", ob.low(), ob.high(), "fresh", b.ts()));
+                    break;
+                }
+                if ("bear".equals(ob.direction()) && b.close() > ob.high()) {
+                    breakers.add(new IctSnapshot.Zone("BREAKER", "bull", ob.low(), ob.high(), "fresh", b.ts()));
+                    break;
+                }
+            }
+        }
+        return breakers;
+    }
+
+    static List<IctSnapshot.Zone> deriveIfvgs(List<OhlcBar> bars, List<IctSnapshot.Zone> fvgs) {
+        List<IctSnapshot.Zone> ifvgs = new ArrayList<>();
+        for (IctSnapshot.Zone fvg : fvgs) {
+            int fvgIdx = barIndex(bars, fvg.ts());
+            if (fvgIdx < 0) {
+                continue;
+            }
+            for (int i = fvgIdx + 1; i < bars.size(); i++) {
+                OhlcBar b = bars.get(i);
+                if ("bull".equals(fvg.direction()) && b.close() < fvg.low()) {
+                    ifvgs.add(new IctSnapshot.Zone("IFVG", "bear", fvg.low(), fvg.high(), "inverted", b.ts()));
+                    break;
+                }
+                if ("bear".equals(fvg.direction()) && b.close() > fvg.high()) {
+                    ifvgs.add(new IctSnapshot.Zone("IFVG", "bull", fvg.low(), fvg.high(), "inverted", b.ts()));
+                    break;
+                }
+            }
+        }
+        return ifvgs;
+    }
+
+    private static int scoreEntryCandidate(IctSnapshot.Zone z, OteCalculator.OteZone ote,
+                                           List<IctSnapshot.Zone> breakers,
+                                           List<IctSnapshot.Zone> fvgs, List<IctSnapshot.Zone> ifvgs) {
         int score = 0;
         if (OteCalculator.overlapsOte(z, ote)) {
             score += 2;
@@ -421,34 +481,76 @@ public class IctEngine {
         if (OteCalculator.nearSweetSpot(z, ote, OTE_SWEET_EPS)) {
             score += 1;
         }
-        if ("fresh".equals(z.state()) || "partial".equals(z.state())) {
+        if ("fresh".equals(z.state()) || "partial".equals(z.state()) || "inverted".equals(z.state())) {
+            score += 1;
+        }
+        if (isUnicornCandidate(z, breakers, fvgs, ifvgs)) {
             score += 1;
         }
         return score;
     }
 
-    private static boolean preferObOverFvg(IctSnapshot.Zone candidate, IctSnapshot.Zone currentBest) {
-        if (currentBest == null) {
-            return true;
+    private static boolean isUnicornCandidate(IctSnapshot.Zone z, List<IctSnapshot.Zone> breakers,
+                                              List<IctSnapshot.Zone> fvgs, List<IctSnapshot.Zone> ifvgs) {
+        if ("BREAKER".equals(z.type())) {
+            return overlapsAny(z, fvgs) || overlapsAny(z, ifvgs);
         }
-        if ("OB".equals(candidate.type()) && !"OB".equals(currentBest.type())) {
-            return true;
+        if ("IFVG".equals(z.type())) {
+            return overlapsAny(z, breakers);
         }
         return false;
     }
 
-    private static IctSnapshot.Zone fallbackEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs, String want) {
-        for (IctSnapshot.Zone z : obs) {
-            if (z.direction().equals(want)) {
-                return z;
+    static boolean zonesOverlap(IctSnapshot.Zone a, IctSnapshot.Zone b) {
+        return a.low() <= b.high() && b.low() <= a.high();
+    }
+
+    private static boolean overlapsAny(IctSnapshot.Zone z, List<IctSnapshot.Zone> others) {
+        for (IctSnapshot.Zone other : others) {
+            if (zonesOverlap(z, other)) {
+                return true;
             }
         }
-        for (IctSnapshot.Zone z : fvgs) {
-            if (z.direction().equals(want)) {
-                return z;
+        return false;
+    }
+
+    private static int zoneTypePriority(String type) {
+        return switch (type) {
+            case "OB" -> 4;
+            case "BREAKER" -> 3;
+            case "FVG" -> 2;
+            case "IFVG" -> 1;
+            default -> 0;
+        };
+    }
+
+    private static boolean preferZoneType(IctSnapshot.Zone candidate, IctSnapshot.Zone currentBest) {
+        if (currentBest == null) {
+            return true;
+        }
+        return zoneTypePriority(candidate.type()) > zoneTypePriority(currentBest.type());
+    }
+
+    private static IctSnapshot.Zone fallbackEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs,
+                                                  List<IctSnapshot.Zone> breakers, List<IctSnapshot.Zone> ifvgs,
+                                                  String want) {
+        for (List<IctSnapshot.Zone> list : List.of(obs, fvgs, breakers, ifvgs)) {
+            for (IctSnapshot.Zone z : list) {
+                if (z.direction().equals(want)) {
+                    return z;
+                }
             }
         }
         return null;
+    }
+
+    private static int barIndex(List<OhlcBar> bars, Instant ts) {
+        for (int i = 0; i < bars.size(); i++) {
+            if (bars.get(i).ts().equals(ts)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static int score(String killzone, Sweep sweep, boolean reclaim, Structure structure,

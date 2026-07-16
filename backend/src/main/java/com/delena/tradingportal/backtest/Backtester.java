@@ -21,7 +21,9 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -145,6 +147,127 @@ public class Backtester {
         return buildResult(config.style(), barsProcessed, closedTrades, equityCurve);
     }
 
+    /**
+     * Rolling walk-forward on M15: each fold runs {@link #run} on history {@code [0, foldEnd)} so engines
+     * see train+test context, but metrics are scored only on trades entered in the OOS test segment.
+     */
+    public WalkForwardResult walkForward(BacktestHistory history, BacktestConfig config, WalkForwardConfig wf) {
+        if (history == null || history.m15() == null) {
+            return WalkForwardResult.empty();
+        }
+        List<OhlcBar> m15 = history.m15();
+        int lookback = config.lookbackBars();
+        int minBars = lookback + wf.trainBars() + wf.testBars();
+        if (m15.size() < minBars) {
+            return WalkForwardResult.empty();
+        }
+
+        List<BacktestResult> folds = new ArrayList<>();
+        List<BacktestResult.TradeSummary> allTestTrades = new ArrayList<>();
+
+        for (int offset = 0; ; offset += wf.stepBars()) {
+            int testStartIdx = lookback + offset + wf.trainBars();
+            int testEndIdx = testStartIdx + wf.testBars();
+            int foldEnd = testEndIdx;
+            if (foldEnd > m15.size()) {
+                break;
+            }
+
+            BacktestHistory slice = history.prefixThroughM15Index(foldEnd);
+            BacktestResult full = run(slice, config);
+
+            Instant testStart = m15.get(testStartIdx).ts();
+            Instant testEndExclusive = m15.get(testEndIdx).ts();
+
+            List<BacktestResult.TradeSummary> testTrades = full.trades().stream()
+                    .filter(t -> !t.entryTime().isBefore(testStart) && t.entryTime().isBefore(testEndExclusive))
+                    .toList();
+
+            folds.add(BacktestResult.fromTrades(config.style(), full.barsProcessed(), testTrades));
+            allTestTrades.addAll(testTrades);
+        }
+
+        if (folds.isEmpty()) {
+            return WalkForwardResult.empty();
+        }
+
+        BacktestResult aggregate = BacktestResult.fromTrades(config.style(), 0, allTestTrades);
+        return new WalkForwardResult(folds, aggregate.expectancyR(), aggregate.profitFactor(),
+                aggregate.maxDrawdownPct());
+    }
+
+    /**
+     * Monte-Carlo robustness: permute trade R-multiples, rebuild equity curves, summarize distribution.
+     */
+    public MonteCarloResult monteCarlo(BacktestResult base, int iterations, long seed) {
+        if (base == null || iterations <= 0) {
+            return MonteCarloResult.empty();
+        }
+        List<Double> rMults = base.rMultiples();
+        if (rMults.isEmpty()) {
+            return MonteCarloResult.empty();
+        }
+
+        Random rng = new Random(seed);
+        List<Double> expectancies = new ArrayList<>(iterations);
+        List<Double> maxDds = new ArrayList<>(iterations);
+        int positive = 0;
+
+        for (int i = 0; i < iterations; i++) {
+            List<Double> shuffled = new ArrayList<>(rMults);
+            Collections.shuffle(shuffled, rng);
+
+            double expectancy = shuffled.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+            expectancies.add(expectancy);
+            if (expectancy > 0.0) {
+                positive++;
+            }
+
+            List<Double> curve = cumulativeFromRMultiples(shuffled);
+            maxDds.add(maxDrawdownPct(curve));
+        }
+
+        Collections.sort(expectancies);
+        Collections.sort(maxDds);
+
+        return new MonteCarloResult(
+                iterations,
+                percentile(expectancies, 5),
+                percentile(expectancies, 50),
+                percentile(expectancies, 95),
+                percentile(maxDds, 5),
+                percentile(maxDds, 50),
+                percentile(maxDds, 95),
+                (double) positive / iterations);
+    }
+
+    private static List<Double> cumulativeFromRMultiples(List<Double> rMults) {
+        List<Double> curve = new ArrayList<>();
+        double eq = 0.0;
+        for (double r : rMults) {
+            eq += r;
+            curve.add(eq);
+        }
+        return curve;
+    }
+
+    static double percentile(List<Double> sorted, double p) {
+        if (sorted == null || sorted.isEmpty()) {
+            return 0.0;
+        }
+        if (sorted.size() == 1) {
+            return sorted.get(0);
+        }
+        double rank = (p / 100.0) * (sorted.size() - 1);
+        int lo = (int) Math.floor(rank);
+        int hi = (int) Math.ceil(rank);
+        if (lo == hi) {
+            return sorted.get(lo);
+        }
+        double w = rank - lo;
+        return sorted.get(lo) * (1.0 - w) + sorted.get(hi) * w;
+    }
+
     private record PendingOrder(ConfluenceDecision decision, int barsRemaining) {
         PendingOrder withBarsRemaining(int bars) {
             return new PendingOrder(decision, bars);
@@ -176,42 +299,7 @@ public class Backtester {
     private static BacktestResult buildResult(TradingStyle style, int barsProcessed,
                                               List<BacktestResult.TradeSummary> trades,
                                               List<Double> equitySteps) {
-        int n = trades.size();
-        if (n == 0) {
-            return new BacktestResult(style, barsProcessed, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, List.of());
-        }
-
-        double totalR = trades.stream().mapToDouble(BacktestResult.TradeSummary::rMultiple).sum();
-        long wins = trades.stream().filter(t -> t.rMultiple() > 0).count();
-        double winRate = (double) wins / n;
-
-        double grossProfit = trades.stream().filter(t -> t.rMultiple() > 0).mapToDouble(BacktestResult.TradeSummary::rMultiple).sum();
-        double grossLoss = Math.abs(trades.stream().filter(t -> t.rMultiple() < 0).mapToDouble(BacktestResult.TradeSummary::rMultiple).sum());
-        double profitFactor = grossLoss > 0 ? grossProfit / grossLoss : (grossProfit > 0 ? Double.POSITIVE_INFINITY : 0.0);
-        if (Double.isInfinite(profitFactor)) {
-            profitFactor = 999.99;
-        }
-
-        double expectancyR = totalR / n;
-
-        List<Double> curve = equitySteps.isEmpty() ? cumulativeFromTrades(trades) : equitySteps;
-        double maxDdPct = maxDrawdownPct(curve);
-
-        double avgWin = trades.stream().filter(t -> t.rMultiple() > 0).mapToDouble(BacktestResult.TradeSummary::rMultiple).average().orElse(0.0);
-        double avgLoss = trades.stream().filter(t -> t.rMultiple() < 0).mapToDouble(BacktestResult.TradeSummary::rMultiple).average().orElse(0.0);
-
-        return new BacktestResult(style, barsProcessed, n, winRate, profitFactor, expectancyR,
-                maxDdPct, avgWin, avgLoss, totalR, List.copyOf(trades));
-    }
-
-    private static List<Double> cumulativeFromTrades(List<BacktestResult.TradeSummary> trades) {
-        List<Double> curve = new ArrayList<>();
-        double eq = 0;
-        for (var t : trades) {
-            eq += t.rMultiple();
-            curve.add(eq);
-        }
-        return curve;
+        return BacktestResult.fromTrades(style, barsProcessed, trades, equitySteps);
     }
 
     private static void appendEquity(List<Double> curve, double deltaR) {

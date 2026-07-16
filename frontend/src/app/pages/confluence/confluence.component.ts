@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ConfluenceDecision, Direction, Grade } from '../../core/models';
+import { ConfluenceDecision, Direction, GannSnapshot, Grade, IctSnapshot } from '../../core/models';
 import { PriceLevelsComponent } from '../../components/price-levels/price-levels.component';
 
 @Component({
@@ -60,7 +61,7 @@ import { PriceLevelsComponent } from '../../components/price-levels/price-levels
 
         <!-- dominant visual -->
         <section class="mt-2 flex-1">
-          <tp-price-levels [decision]="d" />
+          <tp-price-levels [decision]="d" [ict]="ict()" [gann]="gann()" />
         </section>
 
         <!-- CTA row -->
@@ -170,6 +171,8 @@ export class ConfluenceComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly decision = signal<ConfluenceDecision | null>(null);
+  readonly ict = signal<IctSnapshot | null>(null);
+  readonly gann = signal<GannSnapshot | null>(null);
   readonly loading = signal(true);
   readonly acting = signal(false);
   readonly actionMsg = signal<string | null>(null);
@@ -200,9 +203,15 @@ export class ConfluenceComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getHealth().subscribe();
-    this.api.getLatestDecision().subscribe({
-      next: (d) => {
-        this.decision.set(d);
+    forkJoin({
+      decision: this.api.getLatestDecision(),
+      ict: this.api.getIctSnapshot(),
+      gann: this.api.getGannSnapshot()
+    }).subscribe({
+      next: ({ decision, ict, gann }) => {
+        this.decision.set(decision);
+        this.ict.set(ict);
+        this.gann.set(gann);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)

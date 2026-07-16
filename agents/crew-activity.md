@@ -4,7 +4,7 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
-| 2026-07-17 ~03:00 | lead | Complete deep-algo: EQH cap/merge, POST /api/paper/close, docs, 0.3.0-SNAPSHOT; Reviewer then push | Reviewer GO; push origin/main |
+| 2026-07-17 ~03:15 | lead+H | Implement leftovers: Breaker/IFVG, WF+MC backtest, Angular overlays; mvn+npm green | pending commit+Reviewer |
 | 2026-07-17 | grok (decision) | Deep-algo re-ask: verified `mvn test` 53/0, H1–H7 wiring, sample CSV, live=false; paper smoke not run | **GOOD_FOR_DEV_SMOKE** — superseded by lead smoke above |
 | 2026-07-16 ~22:08 | parallel-track (cursor) | 0.2.0 parallel: `check-mt5` → unavailable (10s IPC timeout); `SOAK-BASELINE-0.2.md` + OPS MT5 status note | paper-only; does not block promote; no live |
 | 2026-07-16 ~21:00 | e2e-public-dev (cursor) | Public DEV Device Lab (#18): `TP_BASE_URL=https://trading-portal-dev.delena.buzz`, Playwright slot claim/release, 9 tests | **3 pass / 6 fail** — login 401 (CSS creds/client); `/api/health` 502; unauth redirect OK; evidence `docs/E2E-PUBLIC-DEV-0.2.md` |

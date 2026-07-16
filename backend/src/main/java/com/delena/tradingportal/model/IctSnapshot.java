@@ -56,6 +56,8 @@ public record IctSnapshot(
     public record Zones(
             List<Zone> orderBlocks,
             List<Zone> fvgs,
+            List<Zone> breakers,
+            List<Zone> ifvgs,
             Zone activeEntry,
             OteZone activeOte
     ) {

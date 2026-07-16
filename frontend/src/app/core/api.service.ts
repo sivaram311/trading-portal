@@ -4,11 +4,13 @@ import { Observable, catchError, map, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   ConfluenceDecision,
+  GannSnapshot,
   HealthResponse,
+  IctSnapshot,
   JournalListResponse,
   PaperJournalEntry
 } from './models';
-import { MOCK_DECISION, mockJournal } from './mock-data';
+import { MOCK_DECISION, MOCK_GANN, MOCK_ICT, mockJournal } from './mock-data';
 
 /**
  * Talks to the Spring Boot API (:3340). The backend may not be up yet — every
@@ -42,6 +44,26 @@ export class ApiService {
       catchError(() => {
         this.usingMock.set(true);
         return of(MOCK_DECISION);
+      })
+    );
+  }
+
+  getIctSnapshot(): Observable<IctSnapshot | null> {
+    return this.http.get<IctSnapshot>(this.base('/api/engines/ict/snapshot')).pipe(
+      tap(() => this.usingMock.set(false)),
+      catchError(() => {
+        this.usingMock.set(true);
+        return of(MOCK_ICT);
+      })
+    );
+  }
+
+  getGannSnapshot(): Observable<GannSnapshot | null> {
+    return this.http.get<GannSnapshot>(this.base('/api/engines/gann/snapshot')).pipe(
+      tap(() => this.usingMock.set(false)),
+      catchError(() => {
+        this.usingMock.set(true);
+        return of(MOCK_GANN);
       })
     );
   }

@@ -36,7 +36,10 @@ Living Java engines already exist under `backend/src/main/java/com/delena/tradin
 | Style profiles | `engine/style/*` | **Done** — SCALP/DAY/POSITIONAL; `trading.style` |
 | PositionManager | `paper/PositionManager.java` | **Done** — BE/T1/trail; **no ADD_LEG** (Grok MAX_LEGS=1) |
 | MarketQualityGate | `engine/risk/MarketQualityGate.java` | **Done** — Pipeline merge before persist |
-| Breaker / IFVG | — | **Deferred** (Grok DEFER) |
+| Breaker / IFVG | `IctEngine.deriveBreakers/Ifvgs` | **Done** — Zones.breakers/ifvgs + UNICORN selectEntry |
+| Walk-forward / Monte-Carlo | `Backtester.walkForward` / `monteCarlo` | **Done** |
+| Angular overlays | `price-levels` + confluence fetch | **Done** — OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
+| DXY SMT | — | **Still deferred** (needs DXY bars) |
 
 **Rule for Cursor:** Prefer extending existing classes and models (`IctSnapshot`, `GannSnapshot`, `ConfluenceDecision`, `RiskVerdict`) over greenfield rewrites.
 

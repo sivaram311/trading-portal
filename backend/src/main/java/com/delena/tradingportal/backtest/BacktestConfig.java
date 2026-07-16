@@ -3,7 +3,7 @@ package com.delena.tradingportal.backtest;
 import com.delena.tradingportal.engine.style.TradingStyle;
 
 /**
- * Tunables for a bar-by-bar paper backtest (DEEP-ALGORITHMS §9). Walk-forward / Monte-Carlo deferred.
+ * Tunables for a bar-by-bar paper backtest (DEEP-ALGORITHMS §9).
  */
 public record BacktestConfig(
         TradingStyle style,

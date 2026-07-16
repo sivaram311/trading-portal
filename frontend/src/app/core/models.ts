@@ -95,3 +95,53 @@ export interface HealthResponse {
   ny_time?: string;
   checks?: { db?: boolean; ingest?: boolean; mt5?: boolean };
 }
+
+/** ICT zone row (OB / FVG / BREAKER / IFVG when engine emits them). */
+export interface IctZone {
+  type: 'OB' | 'FVG' | 'BREAKER' | 'IFVG' | string;
+  direction: 'bull' | 'bear' | string;
+  low: number;
+  high: number;
+  state?: 'fresh' | 'tested' | 'filled' | string;
+  ts?: string;
+}
+
+export interface IctOteZone {
+  deep: number;
+  sweet: number;
+  shallow: number;
+  invalidation: number;
+}
+
+/** Minimal ICT snapshot fields used by the price rail overlay. */
+export interface IctSnapshot {
+  symbol: 'XAUUSD';
+  asof: string;
+  zones: {
+    order_blocks: IctZone[];
+    fvgs: IctZone[];
+    active_entry?: IctZone | null;
+    active_ote?: IctOteZone | null;
+  };
+}
+
+export interface GannSo9Level {
+  kind: 'fine' | 'odd' | 'even' | string;
+  k: number;
+  price: number;
+  dist: number;
+}
+
+/** Minimal Gann snapshot fields used by the price rail overlay. */
+export interface GannSnapshot {
+  symbol: 'XAUUSD';
+  asof: string;
+  angle: {
+    equilibrium: number;
+  };
+  so9: {
+    levels: GannSo9Level[];
+    at_level: boolean;
+    nearest?: GannSo9Level | null;
+  };
+}

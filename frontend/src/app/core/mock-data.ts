@@ -1,4 +1,4 @@
-import { ConfluenceDecision, PaperJournalEntry } from './models';
+import { ConfluenceDecision, GannSnapshot, IctSnapshot, PaperJournalEntry } from './models';
 
 // Deterministic offline fixtures so the portal is demoable with the backend down.
 // Numbers are illustrative XAUUSD levels, not a live signal.
@@ -19,6 +19,35 @@ export const MOCK_DECISION: ConfluenceDecision = {
   engines: { ict_ref: 'ict@2026-07-15T13:31:00Z', gann_ref: 'gann@2026-07-15T13:31:00Z' },
   automation: 'confirm',
   weights_version: 'cw-2026.07.0'
+};
+
+/** Illustrative ICT overlay aligned with MOCK_DECISION entry geometry. */
+export const MOCK_ICT: IctSnapshot = {
+  symbol: 'XAUUSD',
+  asof: MOCK_DECISION.ts,
+  zones: {
+    order_blocks: [
+      { type: 'OB', direction: 'bear', low: 2412.4, high: 2414.8, state: 'fresh' }
+    ],
+    fvgs: [{ type: 'FVG', direction: 'bear', low: 2410.2, high: 2411.6, state: 'fresh' }],
+    active_entry: { type: 'OB', direction: 'bear', low: 2412.4, high: 2414.8, state: 'fresh' },
+    active_ote: { deep: 2411.2, sweet: 2413.1, shallow: 2414.6, invalidation: 2419.0 }
+  }
+};
+
+/** Illustrative Gann overlay — 1×1 equilibrium + nearest So9 resistance. */
+export const MOCK_GANN: GannSnapshot = {
+  symbol: 'XAUUSD',
+  asof: MOCK_DECISION.ts,
+  angle: { equilibrium: 2409.8 },
+  so9: {
+    levels: [
+      { kind: 'odd', k: 1, price: 2404.5, dist: -8.7 },
+      { kind: 'even', k: 2, price: 2396.0, dist: -17.2 }
+    ],
+    at_level: false,
+    nearest: { kind: 'odd', k: 1, price: 2404.5, dist: -8.7 }
+  }
 };
 
 export function mockJournal(): PaperJournalEntry[] {

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OteCalculatorTest {
 
     private static final Instant TS = Instant.parse("2026-07-15T12:30:00Z");
+    private static final List<IctSnapshot.Zone> NO_EXTRA = List.of();
 
     @Test
     void longOteLevelsMatchFibonacciRetracement() {
@@ -80,7 +81,7 @@ class OteCalculatorTest {
         var oteOb = zone("OB", "bull", ote.deep() - 1, ote.shallow() + 1);
 
         IctEngine.EntrySelection pick = IctEngine.selectEntry(
-                List.of(outsideOb, oteOb), List.of(), "long", ote);
+                List.of(outsideOb, oteOb), List.of(), NO_EXTRA, NO_EXTRA, "long", ote);
 
         assertEquals(oteOb, pick.zone());
         assertTrue(pick.oteOverlap());
@@ -94,7 +95,7 @@ class OteCalculatorTest {
         var oteFvg = zone("FVG", "bull", ote.sweet() - 0.5, ote.sweet() + 0.5);
 
         IctEngine.EntrySelection pick = IctEngine.selectEntry(
-                List.of(outsideOb), List.of(oteFvg), "long", ote);
+                List.of(outsideOb), List.of(oteFvg), NO_EXTRA, NO_EXTRA, "long", ote);
 
         assertEquals(oteFvg, pick.zone());
         assertTrue(pick.oteOverlap());
@@ -108,7 +109,7 @@ class OteCalculatorTest {
         var sweetOverlap = zone("OB", "bull", ote.sweet() - 0.4, ote.sweet() + 0.4);
 
         IctEngine.EntrySelection pick = IctEngine.selectEntry(
-                List.of(shallowOverlap, sweetOverlap), List.of(), "long", ote);
+                List.of(shallowOverlap, sweetOverlap), List.of(), NO_EXTRA, NO_EXTRA, "long", ote);
 
         assertEquals(sweetOverlap, pick.zone());
         assertTrue(pick.oteOverlap());
@@ -119,7 +120,8 @@ class OteCalculatorTest {
         var ob = zone("OB", "bull", 1930, 1935);
         var fvg = zone("FVG", "bull", 1940, 1945);
 
-        IctEngine.EntrySelection pick = IctEngine.selectEntry(List.of(ob), List.of(fvg), "long", null);
+        IctEngine.EntrySelection pick = IctEngine.selectEntry(
+                List.of(ob), List.of(fvg), NO_EXTRA, NO_EXTRA, "long", null);
 
         assertEquals(ob, pick.zone());
         assertFalse(pick.oteOverlap());
@@ -132,7 +134,8 @@ class OteCalculatorTest {
         var farOb = new IctSnapshot.Zone("OB", "bull", 1800, 1810, "tested", TS);
         var farFvg = new IctSnapshot.Zone("FVG", "bull", 1815, 1820, "tested", TS);
 
-        IctEngine.EntrySelection pick = IctEngine.selectEntry(List.of(farOb), List.of(farFvg), "long", ote);
+        IctEngine.EntrySelection pick = IctEngine.selectEntry(
+                List.of(farOb), List.of(farFvg), NO_EXTRA, NO_EXTRA, "long", ote);
 
         assertEquals(farOb, pick.zone());
         assertFalse(pick.oteOverlap());

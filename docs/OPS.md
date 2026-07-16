@@ -16,10 +16,12 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 |--------|--------|
 | OTE | `OteCalculator` — entry prefers OTE∩OB/FVG |
 | Liquidity | EQH/EQL (max 3/side, merged) + ROUND_5/10/50/100 |
+| Breaker / IFVG | Polarity-flip POIs; `UNICORN` when breaker∩FVG/IFVG |
 | Style | `trading.style=SCALP\|DAY\|POSITIONAL` (default DAY) |
 | QualityGate | spread / ATR extreme / gap / duplicate → deny even A+ |
 | PositionManager | BE@1R, partial T1, ATR trail; **max 1 open** (no pyramiding) |
-| Backtester | `com.delena.tradingportal.backtest` — bar-by-bar; sample CSV under `backend/target/backtest-sample-metrics.csv` |
+| Backtester | bar-by-bar + **walk-forward** + **Monte-Carlo** shuffle |
+| UI overlays | Confluence price rail: OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
 | Paper close | `POST /api/paper/close` `{ decision_id, exit_reason, exit_price }` |
 
 Smoke evidence: `docs/DEEP-ALGO-DEV-SMOKE-0.3.md`.
