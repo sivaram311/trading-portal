@@ -25,3 +25,5 @@ Append newest at top.
 | 2026-07-15 ~08:57 | lead+cursor | Create `trading-portal` scaffold at MyWorkspace root; reference grok_dev; invoke Grok CLI for ICT+Gann theories/algorithms | scaffold ok; theory hire completed ~09:05 |
 
 | 2026-07-16 ~21:05 | lead+e2e (cursor) | Roadmap 0.2 wave1 done: MT5 subprocess timeout (IPC no-hang), H4/D1 defaults, P4 ops soak/weights/replay, ICT HTF H4?H1, news calendar, A+ auto-confirm OFF; P5 HOLD design; public DEV E2E **9/9 PASS** on trading-portal-dev.delena.buzz with CSS_ADMIN_PASSWORD (slot claim/release); soak_met=false on DEV (1/1). |
+
+| 2026-07-16 ~22:15 | promote crew (cursor+agy) | **v0.2.0** Q1+Q2 GO live F:/G:; UI flatten browser/; soak waived; MT5 still unavailable; P5 HOLD |
