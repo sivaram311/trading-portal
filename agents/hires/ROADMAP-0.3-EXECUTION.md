@@ -14,7 +14,7 @@
 | 3 | Observability harden | backend+ops | Fleet under real MT5 | none | **done** |
 | 4 | Paper-path reliability (F: replay/soak smoke) | backend+QA | Evidence before engine churn | paper | **done** |
 | 5 | Engine depth | engines | Deep-algo + SMT 2026-07-17 | none | **done** — tagged `v0.3.0` paper F/G |
-| 6 | P5 micro-live | live | Coded DEV-gated; default fail-closed | paper→micro | **coded** — see `P5-MICRO-LIVE.md`; F/G stay `live-enabled=false` |
+| 6 | P5 micro-live | live | Coded DEV-gated; default fail-closed | paper→micro | **coded in `v0.3.1`** — F/G fail-closed (`live-enabled=false`); arm DEV only per `P5-MICRO-LIVE.md` |
 
 ## MUST_NOT
 
@@ -35,7 +35,8 @@
 - [x] **Track 4:** PREPROD paper-path smoke (decision/journal/replay) — evidence `docs/FLEET-SMOKE-0.3.md`
 - [x] Hardened F:/G: `start.ps1` — clear inherited `SPRING_DATASOURCE_*`, pin schema (fix cross-env pollution)
 - [x] **Track 5 + promote:** `v0.3.0` tagged; DEV E2E 9/9; F:/G: `0.3.0` jar health ok; `live-enabled=false`
+- [x] **P5 jar promote:** `v0.3.1` tagged; DEV E2E 9/9; F:/G: `0.3.1` jar; live still false / not armed
 
 ## Version
 
-**Live tag `v0.3.0`** on E/F/G (paper-only). Remaining: **P5 HOLD** until exact unlock phrase (`agents/hires/P5-UNLOCK-STATUS-2026-07-17.md`).
+**Live tag `v0.3.1`** on E/F/G (paper + P5 code fail-closed). Arm micro-live on **DEV only** per `P5-MICRO-LIVE.md`; do not arm F/G.

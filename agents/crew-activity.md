@@ -4,6 +4,7 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
+| 2026-07-17 ~11:05 | lead+promote | Q1+Q2 `v0.3.1` (P5 fail-closed); DEV E2E 9/9; F→G deploy | Reviewer GO; push+tag |
 | 2026-07-17 ~03:15 | lead+H | Implement leftovers: Breaker/IFVG, WF+MC backtest, Angular overlays; mvn+npm green | Reviewer GO; push |
 | 2026-07-17 | grok (decision) | Deep-algo re-ask: verified `mvn test` 53/0, H1–H7 wiring, sample CSV, live=false; paper smoke not run | **GOOD_FOR_DEV_SMOKE** — superseded by lead smoke above |
 | 2026-07-16 ~22:08 | parallel-track (cursor) | 0.2.0 parallel: `check-mt5` → unavailable (10s IPC timeout); `SOAK-BASELINE-0.2.md` + OPS MT5 status note | paper-only; does not block promote; no live |

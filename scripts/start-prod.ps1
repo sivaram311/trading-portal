@@ -19,7 +19,7 @@ Get-Content $Secrets | ForEach-Object {
 $profile = 'prod'
 $apiPort = 5340
 $uiPort = 5341
-$jar = Join-Path $Root 'app\api\trading-portal-backend-0.3.0.jar'
+$jar = Join-Path $Root 'app\api\trading-portal-backend-0.3.1.jar'
 $ui = Join-Path $Root 'app\ui'
 if (-not (Test-Path $jar)) { throw "missing jar $jar" }
 foreach ($p in @($apiPort, $uiPort)) {
