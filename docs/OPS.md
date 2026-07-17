@@ -6,7 +6,8 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 - **Arch:** `agents/pre-work/02-architecture.md`  
 - **Deep algos:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md`  
 - **API port:** `3340` (DEV) · **DB:** `app_trading_portal` schema `dev` · **CSS clientId:** `trading-portal`  
-- **Version:** `0.3.0` · paper F/G · P5 coded but **fail-closed** by default  
+- **Version:** `0.3.2` · paper F/G · P5 coded but **fail-closed** by default  
+- **Validation:** `docs/FEATURE-VALIDATION-0.3.1.md` · live inventory on `GET /api/ops/status`
 
 ---
 
@@ -20,7 +21,8 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 | Style | `trading.style=SCALP\|DAY\|POSITIONAL` (default DAY) |
 | QualityGate | spread / ATR extreme / gap / duplicate → deny even A+ |
 | PositionManager | BE@1R, partial T1, ATR trail; **max 1 open** (no pyramiding) |
-| Backtester | bar-by-bar + **walk-forward** + **Monte-Carlo** shuffle |
+| Backtester | bar-by-bar + walk-forward + Monte-Carlo · **`POST /api/backtest/run`** |
+| Ops inventory | `GET /api/ops/status` → `trading_style` + `features` (IMPLEMENTED / MISSING map) |
 | UI overlays | Confluence price rail: OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
 | DXY SMT | Confirmation only (`SmtDetector`); soft fail if no DXY bars |
 | Paper close | `POST /api/paper/close` `{ decision_id, exit_reason, exit_price }` |
@@ -67,7 +69,7 @@ mvn -q -DskipTests spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 On startup the app:
-- runs Flyway migration `V1__init` into schema `dev` (6 tables),
+- runs Flyway migrations `V1__init` + `V2__live_journal_indexes` into schema `dev`,
 - seeds ~500+ synthetic XAUUSD M5/M15/H1 bars **if `ohlc_candle` is empty** (`trading.seed.enabled=true`),
 - computes and persists the latest ICT + Gann snapshots, the graded `ConfluenceDecision`, its
   `RiskVerdict`, and an initial journal row.
@@ -130,9 +132,14 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 | GET | `/api/paper/journal` | yes | filter by grade/mode/direction/status/session_date/from/to |
 | POST | `/api/paper/close` | yes | close PAPER_OPEN/PARTIAL → PAPER_CLOSED (exit_reason, mfe/mae) |
 | GET | `/api/ops/soak` | yes | PREPROD soak metrics (decision count, session days, weights) |
-| GET | `/api/ops/status` | yes | Fleet observability: soak + OHLC freshness + ingest health probe + `live_enabled` guard |
+| GET | `/api/ops/status` | yes | soak + OHLC freshness + ingest probe + `live_enabled` + `trading_style` + `features` |
 | GET | `/api/ops/weights` | yes | configured + distinct `weights_version` audit |
 | POST | `/api/ops/replay` | yes | recompute decision at `?asof=ISO-8601` (default now) from stored OHLC |
+| GET | `/api/backtest/capabilities` | yes | paper-only backtest surface (styles, bar counts) |
+| POST | `/api/backtest/run` | yes | bar-by-bar metrics; optional `walkForward` / `monteCarlo` query flags |
+| GET | `/api/live/gate` | yes | P5 gate verdict (default deny on F/G) |
+| POST | `/api/live/confirm` | yes | micro-live open when gate ok (DEV only) |
+| GET/POST | `/api/ops/kill-switch` | yes | engage/clear P5 kill switch |
 
 ## 8. News blackout + A+ auto-confirm
 
@@ -226,7 +233,7 @@ see `E:\MyAgent\workflow\db\PROPOSAL-2026-07-16-pool-caps.md`. Post-roll: ~19 to
 powershell -File scripts\check-fleet.ps1 -WithAuth
 ```
 
-- **API:** `GET /api/ops/status` — soak + OHLC freshness + ingest health URL probe + `live_enabled` guard.
+- **API:** `GET /api/ops/status` — soak + OHLC freshness + ingest probe + `live_enabled` + `trading_style` + `features`.
 - **Config:** `trading.ops.ingest-health-url` (3342/4342/5342 per env), `trading.ops.ohlc-stale-after-seconds` (default 7200).
 - **Evidence:** `docs/FLEET-SMOKE-0.3.md`
 - **Start scripts:** F:/G: `start.ps1` (templates in `scripts/start-preprod.ps1` / `start-prod.ps1`) clear inherited `SPRING_DATASOURCE_*` and pin schema — prevents cross-env shell pollution.

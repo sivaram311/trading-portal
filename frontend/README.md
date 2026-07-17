@@ -22,8 +22,8 @@ Configure in `src/environments/environment.ts` (`apiUrl`, `cssUrl`, `clientId`, 
 | Route | View |
 |-------|------|
 | `/login` | CSS password login (`POST {cssUrl}/auth/login {username,password,clientId}`) → stores JWT. Clear error if CSS unreachable; optional `DEV_TOKEN` demo button. |
-| `/` | **Live confluence** — first-viewport composition: brand · headline (grade + direction + mode) · one reason line · dominant price-levels visual · CTA **Confirm Paper / Dismiss / Journal**. Details scroll below. |
-| `/journal` | Paper journal list with grade filters. |
+| `/` | **Live confluence** — brand · style badge (DAY/SCALP/POSITIONAL) · headline · price-rail overlays · engine tags · Confirm/Dismiss/Journal |
+| `/journal` | Paper journal — grade filters; exit/MFE/MAE when closed |
 
 `/` and `/journal` are protected by `authGuard`.
 
@@ -51,7 +51,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run-ui-dev.ps1
 
 ```bash
 npm run e2e:install  # one-time: chromium
-npm run e2e          # phone 360x780 + desktop 1280x800 + tablet 800x1280
+npm run e2e          # 12 tests: auth + journal + ICT/Gann reason chips (3 viewports)
 ```
 
 Specs **soft-skip** authenticated views when CSS is unreachable (no real JWT).

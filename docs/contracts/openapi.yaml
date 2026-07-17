@@ -2,20 +2,14 @@ openapi: 3.1.0
 jsonSchemaDialect: "https://json-schema.org/draft/2020-12/schema"
 info:
   title: Trading Portal API (DEV contract)
-  version: 0.1.0
+  version: 0.3.2
   description: |
-    Contract-first specification for the Trading Portal backend (Spring Boot 3.3), covering
-    the MVP paper-confluence vertical slice defined in `agents/hires/GROK-DECISION-001.md`.
+    Contract-first specification for the Trading Portal backend (Spring Boot 3.3).
 
-    Scope: XAUUSD only. Live/micro-live broker execution is explicitly out of scope for this
-    contract (see `docs/algorithms/AUTOMATION-PIPELINE.md` §9). This document describes the
-    HTTP surface only — it does not implement, bind ports, or touch DB/CSS registries.
+    **Live:** `v0.3.2` — paper confluence + deep-algo engines + ops/backtest/P5 gate endpoints.
+    See `docs/OPS.md` for the full route table; P5 micro-live is coded but fail-closed on F/G.
 
-    Field names are aligned 1:1 with:
-      - `docs/theory/CONFLUENCE-FRAMEWORK.md` (grades A+/A/B/C/F, modes R/C/T/NONE, mandatory invalidation)
-      - `docs/algorithms/ICT-SIGNAL-ENGINE.md` (IctSnapshot, reason codes)
-      - `docs/algorithms/GANN-CYCLE-ENGINE.md` (GannSnapshot, reason codes)
-      - `docs/algorithms/AUTOMATION-PIPELINE.md` (RiskVerdict, journal state machine)
+    Scope: XAUUSD only. Field names aligned with theory/algorithms docs (snake_case JSON).
   contact:
     name: Trading Portal crew
     url: https://github.com/
@@ -35,6 +29,9 @@ tags:
   - name: engines
   - name: confluence
   - name: paper-trading
+  - name: ops
+  - name: backtest
+  - name: live
 
 security:
   - bearerAuth: []
@@ -362,6 +359,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/JournalListResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/ops/status:
+    get:
+      tags: [ops]
+      summary: Fleet observability + feature inventory
+      operationId: getOpsStatus
+      responses:
+        "200":
+          description: soak, OHLC freshness, ingest probe, live guard, trading_style, features map
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/backtest/capabilities:
+    get:
+      tags: [backtest]
+      summary: Backtest surface metadata (paper-only)
+      operationId: getBacktestCapabilities
+      responses:
+        "200":
+          description: styles, m15 bar count, flags for WF/MC
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/backtest/run:
+    post:
+      tags: [backtest]
+      summary: Run bar-by-bar backtest on stored OHLC
+      operationId: runBacktest
+      parameters:
+        - name: maxBars
+          in: query
+          schema: { type: integer }
+        - name: style
+          in: query
+          schema: { type: string, enum: [SCALP, DAY, POSITIONAL] }
+        - name: walkForward
+          in: query
+          schema: { type: boolean, default: false }
+        - name: monteCarlo
+          in: query
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: metrics + trades_csv
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: insufficient OHLC bars
+
+  /api/live/gate:
+    get:
+      tags: [live]
+      summary: P5 live execution gate verdict
+      operationId: getLiveGate
+      responses:
+        "200":
+          description: ok/deny_reason/kill_switch_engaged
         "401":
           $ref: "#/components/responses/Unauthorized"
 

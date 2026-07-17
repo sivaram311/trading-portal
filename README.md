@@ -2,9 +2,9 @@
 
 Automated trading **application + portal** for **XAUUSD (gold)**.
 
-**Status:** Initial scaffold (v0 — theories & algorithms before implementation)  
+**Status:** Live on F/G at **`v0.3.2`** (paper + P5 fail-closed) · DEV on `E:\MyWorkspace`  
 **Created:** 2026-07-15  
-**Env:** DEV on `E:\MyWorkspace` (this tree)
+**Feature honesty:** `docs/FEATURE-VALIDATION-0.3.1.md` · `GET /api/ops/status` → `features`
 
 ## Scope (v0 / v1)
 

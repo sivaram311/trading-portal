@@ -30,7 +30,7 @@ Living Java engines already exist under `backend/src/main/java/com/delena/tradin
 | Paper trading | `paper/PaperTradingService.java` | **Basic:** confirm / auto A+ / dismiss; no BE/partial/trail/add |
 | NY time | `common/NyTime.java` | Done — never fall back to UTC |
 | News calendar | `news/NewsCalendarService.java` | Stub / expand |
-| Backtester | `backtest/Backtester.java` | **Done (v1):** bar-by-bar + metrics CSV; WF/MC deferred |
+| Backtester | `backtest/Backtester.java` | **Done:** bar-by-bar + WF/MC + `POST /api/backtest/run` |
 | OTE calculator | `engine/ict/OteCalculator.java` | **Done** — wired into `selectEntry` |
 | EQH/EQL + rounds | `engine/ict/LiquidityPools.java` | **Done** — appended after AHH/ALH/PDH/PDL |
 | Style profiles | `engine/style/*` | **Done** — SCALP/DAY/POSITIONAL; `trading.style` |

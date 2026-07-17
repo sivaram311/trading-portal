@@ -1,6 +1,7 @@
 # Feature validation — trading-portal deep-algo / P5
 
 **When:** 2026-07-17  
+**Live tag:** `v0.3.2` on F/G  
 **Against:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md` phases A–D  
 **Live inventory API:** `GET /api/ops/status` → `features` + `trading_style`
 
