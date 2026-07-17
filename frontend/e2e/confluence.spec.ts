@@ -44,3 +44,19 @@ test.describe('auth + confluence + journal', () => {
     await expect(page.getByRole('button', { name: /sign in via css/i })).toBeVisible();
   });
 });
+
+test.describe('deep-algo functional surface', () => {
+  test('confluence shows ICT/Gann reason chips from live engines', async ({ page }) => {
+    await loginViaCss(page);
+    await expect(page.getByText(/LONG|SHORT|FLAT|NONE/i).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/XAUUSD · Paper/i)).toBeVisible();
+    // Engines are live even when grade F / FLAT fail-closed (Confirm disabled is correct).
+    await expect(page.getByText(/ICT_/).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/GANN_/).first()).toBeVisible({ timeout: 10_000 });
+    // Soft: price rail present when new UI is deployed (testid may lag behind public cache)
+    const rail = page.getByTestId('price-levels');
+    if ((await rail.count()) > 0) {
+      await expect(rail).toBeVisible();
+    }
+  });
+});

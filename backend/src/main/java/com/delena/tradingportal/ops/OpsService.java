@@ -102,7 +102,8 @@ public class OpsService {
         return new FleetStatus(now, level, liveEnabled, killSwitchEngaged, liveGateDenyReason,
                 soak, weights, ohlc, latestDecision, ingest,
                 props.getOps().getIngestHealthUrl(), staleAfter,
-                props.getExec().getBroker(), props.getExec().getAllowedProfiles());
+                props.getExec().getBroker(), props.getExec().getAllowedProfiles(),
+                props.getStyle().name(), FeatureInventory.current());
     }
 
     private IngestProbe probeIngest() {
@@ -153,6 +154,52 @@ public class OpsService {
                               SoakMetrics soak, WeightsAudit weights, List<OhlcTfStatus> ohlc,
                               LatestDecision latestDecision, IngestProbe ingest,
                               String ingestHealthUrl, long ohlcStaleAfterSeconds,
-                              String liveBroker, String liveAllowedProfiles) {
+                              String liveBroker, String liveAllowedProfiles,
+                              String tradingStyle, FeatureInventory features) {
+    }
+
+    /**
+     * Honest deep-algo / P5 surface map for operators (IMPLEMENTED | PARTIAL | MISSING).
+     * Source of truth for “are all features implemented?” — not marketing.
+     */
+    public record FeatureInventory(
+            String ote,
+            String eqhEqlRounds,
+            String styleProfiles,
+            String marketQualityGate,
+            String positionManager,
+            String journalMfeMae,
+            String backtester,
+            String walkForwardMonteCarlo,
+            String breakerIfvgUnicorn,
+            String dxySmt,
+            String p5MicroLive,
+            String uiOverlays,
+            String mitigationBlock,
+            String multiDayGann,
+            String pyramiding,
+            String analyticsDashboardUi,
+            String styleSelectorUi
+    ) {
+        static FeatureInventory current() {
+            return new FeatureInventory(
+                    "IMPLEMENTED",
+                    "IMPLEMENTED",
+                    "IMPLEMENTED_BACKEND",
+                    "IMPLEMENTED",
+                    "IMPLEMENTED_NO_PYRAMIDING",
+                    "IMPLEMENTED_BACKEND",
+                    "IMPLEMENTED_API",
+                    "IMPLEMENTED_API",
+                    "IMPLEMENTED",
+                    "IMPLEMENTED",
+                    "CODED_FAIL_CLOSED",
+                    "IMPLEMENTED_PRICE_RAIL",
+                    "MISSING",
+                    "MISSING",
+                    "MISSING_BY_DESIGN",
+                    "PARTIAL_CSV_API",
+                    "MISSING");
+        }
     }
 }

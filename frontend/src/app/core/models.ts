@@ -120,6 +120,8 @@ export interface IctSnapshot {
   zones: {
     order_blocks: IctZone[];
     fvgs: IctZone[];
+    breakers?: IctZone[];
+    ifvgs?: IctZone[];
     active_entry?: IctZone | null;
     active_ote?: IctOteZone | null;
   };

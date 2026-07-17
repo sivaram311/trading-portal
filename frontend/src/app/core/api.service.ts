@@ -84,6 +84,18 @@ export class ApiService {
     );
   }
 
+  /** Ops fleet status (style + feature inventory). Soft-fail if unauthorized/unreachable. */
+  getOpsStatus(): Observable<{ tradingStyle?: string; trading_style?: string; features?: Record<string, string> } | null> {
+    return this.http.get<Record<string, unknown>>(this.base('/api/ops/status')).pipe(
+      map((raw) => ({
+        tradingStyle: (raw['tradingStyle'] ?? raw['trading_style']) as string | undefined,
+        trading_style: (raw['trading_style'] ?? raw['tradingStyle']) as string | undefined,
+        features: (raw['features'] as Record<string, string>) ?? undefined
+      })),
+      catchError(() => of(null))
+    );
+  }
+
   confirm(decisionId: string, note?: string): Observable<PaperJournalEntry> {
     return this.http
       .post<PaperJournalEntry>(this.base('/api/paper/confirm'), { decision_id: decisionId, note })

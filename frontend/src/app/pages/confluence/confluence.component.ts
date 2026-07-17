@@ -17,7 +17,9 @@ import { PriceLevelsComponent } from '../../components/price-levels/price-levels
       <!-- brand -->
       <header class="flex items-center justify-between">
         <div>
-          <p class="font-mono text-[0.62rem] uppercase tracking-[0.38em] text-gold-400/80">XAUUSD · Paper</p>
+          <p class="font-mono text-[0.62rem] uppercase tracking-[0.38em] text-gold-400/80">
+            XAUUSD · Paper · {{ styleLabel() }}
+          </p>
           <h1 class="font-display text-xl font-600 leading-none text-slate-50">Trading Portal</h1>
         </div>
         <button
@@ -60,9 +62,17 @@ import { PriceLevelsComponent } from '../../components/price-levels/price-levels
         </section>
 
         <!-- dominant visual -->
-        <section class="mt-2 flex-1">
+        <section class="mt-2 flex-1" data-testid="price-levels">
           <tp-price-levels [decision]="d" [ict]="ict()" [gann]="gann()" />
         </section>
+
+        @if (engineTags().length) {
+          <div class="mt-2 flex flex-wrap gap-1.5" data-testid="engine-tags">
+            @for (t of engineTags(); track t) {
+              <span class="rounded-full border border-obsidian-600 px-2 py-0.5 font-mono text-[0.62rem] text-slate-400">{{ t }}</span>
+            }
+          </div>
+        }
 
         <!-- CTA row -->
         <section class="mt-3 grid grid-cols-3 gap-2.5">
@@ -173,11 +183,29 @@ export class ConfluenceComponent implements OnInit {
   readonly decision = signal<ConfluenceDecision | null>(null);
   readonly ict = signal<IctSnapshot | null>(null);
   readonly gann = signal<GannSnapshot | null>(null);
+  readonly tradingStyle = signal<string>('DAY');
   readonly loading = signal(true);
   readonly acting = signal(false);
   readonly actionMsg = signal<string | null>(null);
   readonly actionErr = signal(false);
   readonly user = this.auth.user;
+
+  readonly styleLabel = computed(() => this.tradingStyle() || 'DAY');
+
+  readonly engineTags = computed(() => {
+    const tags: string[] = [];
+    const ict = this.ict();
+    const d = this.decision();
+    if (ict?.zones?.active_ote) tags.push('OTE');
+    if ((ict?.zones?.breakers?.length ?? 0) > 0) tags.push('BREAKER');
+    if ((ict?.zones?.ifvgs?.length ?? 0) > 0) tags.push('IFVG');
+    if ((ict?.zones?.order_blocks?.length ?? 0) > 0) tags.push('OB');
+    if ((ict?.zones?.fvgs?.length ?? 0) > 0) tags.push('FVG');
+    if (d?.reasons?.some((r) => r.includes('SMT') || r.includes('DXY'))) tags.push('SMT');
+    if (d?.reasons?.some((r) => r.includes('UNICORN'))) tags.push('UNICORN');
+    if (d?.reasons?.some((r) => r.includes('EQH') || r.includes('EQL') || r.includes('ROUND'))) tags.push('LIQ');
+    return tags;
+  });
 
   readonly banner = computed(() => {
     if (this.api.usingMock()) {
@@ -203,6 +231,12 @@ export class ConfluenceComponent implements OnInit {
 
   ngOnInit(): void {
     this.api.getHealth().subscribe();
+    this.api.getOpsStatus().subscribe({
+      next: (s) => {
+        if (s?.tradingStyle) this.tradingStyle.set(s.tradingStyle);
+        else if (s?.trading_style) this.tradingStyle.set(s.trading_style);
+      }
+    });
     forkJoin({
       decision: this.api.getLatestDecision(),
       ict: this.api.getIctSnapshot(),

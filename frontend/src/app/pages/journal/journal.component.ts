@@ -90,6 +90,13 @@ import { Direction, Grade, JournalStatus, PaperJournalEntry } from '../../core/m
                   </span>
                 </div>
               </div>
+              @if (e.paper?.exit_reason || e.paper?.mfe_r != null || e.paper?.mae_r != null) {
+                <div class="mt-2 grid grid-cols-3 gap-2 font-mono text-[0.72rem] tabular text-slate-400" data-testid="journal-lifecycle">
+                  <div><span class="block text-[0.6rem] uppercase text-slate-600">Exit</span>{{ e.paper?.exit_reason || '—' }}</div>
+                  <div><span class="block text-[0.6rem] uppercase text-slate-600">MFE R</span>{{ e.paper?.mfe_r != null ? (e.paper?.mfe_r | number: '1.2-2') : '—' }}</div>
+                  <div><span class="block text-[0.6rem] uppercase text-slate-600">MAE R</span>{{ e.paper?.mae_r != null ? (e.paper?.mae_r | number: '1.2-2') : '—' }}</div>
+                </div>
+              }
 
               @if (e.action_note) {
                 <p class="mt-2 text-[0.76rem] italic text-slate-500">“{{ e.action_note }}”</p>

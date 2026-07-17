@@ -89,7 +89,8 @@ public record BacktestResult(
                                      List<TradeSummary> trades, List<Double> equitySteps) {
         int n = trades.size();
         if (n == 0) {
-            return empty(style);
+            // Preserve barsProcessed so operators can see the walk ran (fail-closed / no fills).
+            return new BacktestResult(style, barsProcessed, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, List.of());
         }
 
         double totalR = trades.stream().mapToDouble(TradeSummary::rMultiple).sum();

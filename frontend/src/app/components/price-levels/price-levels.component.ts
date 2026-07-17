@@ -344,7 +344,12 @@ export class PriceLevelsComponent {
 
   private activeZones(ict: IctSnapshot | null): IctZone[] {
     if (!ict?.zones) return [];
-    const zones = [...(ict.zones.order_blocks ?? []), ...(ict.zones.fvgs ?? [])];
+    const zones = [
+      ...(ict.zones.order_blocks ?? []),
+      ...(ict.zones.fvgs ?? []),
+      ...(ict.zones.breakers ?? []),
+      ...(ict.zones.ifvgs ?? [])
+    ];
     return zones.filter(
       (z) =>
         z.low > 0 &&
