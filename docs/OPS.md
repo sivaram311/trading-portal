@@ -99,14 +99,13 @@ Covers: `ny_time` DST transitions (spring-forward / fall-back / offsets), conflu
 
 ## 5. Auth on DEV
 
-CSS DEV :9000 JWKS required for auth (`trading.security.dev-bypass=false`).
-environment (see Blockers). So DEV runs with `trading.security.dev-bypass=false (JWKS; CSS :9000 required)`:
+CSS JWKS via **css-next** DEV IdP **`:4910`** (`trading.security.jwk-set-uri` in `application-dev.properties`).
+Classic CSS `:9000` is not used for this app's DEV profile.
 
 - Public (no auth): `/api/health`, `/api/health/ny-time`, `/actuator/health`.
-- All other endpoints require header **`X-Dev-Token: dev-operator-token`** (or `Authorization: Bearer dev-operator-token`).
-
-When CSS is up, set `trading.security.dev-bypass=false` (default). The resource server then validates
-CSS-issued JWTs via JWKS and requires audience/client `trading-portal`.
+- All other endpoints require a CSS-issued JWT (`Authorization: Bearer …`) for client `trading-portal`.
+- Optional local escape hatch: set `trading.security.dev-bypass=true` and send
+  `X-Dev-Token: dev-operator-token` (never leave this on for promote).
 
 ## 6. Smoke test (curl / PowerShell)
 
