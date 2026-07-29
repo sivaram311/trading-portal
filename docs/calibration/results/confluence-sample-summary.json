@@ -1,0 +1,125 @@
+{
+  "m15_bars": 585,
+  "samples": 77,
+  "grades": {
+    "F": 15,
+    "B": 45,
+    "C": 17
+  },
+  "modes": {
+    "NONE": 47,
+    "T": 30
+  },
+  "automations": {
+    "deny": 77
+  },
+  "directions": {
+    "flat": 15,
+    "short": 62
+  },
+  "confirmable_proxy_A_or_Aplus": 0,
+  "top_reasons": [
+    [
+      "ICT_PD_DISCOUNT",
+      77
+    ],
+    [
+      "GANN_PIVOT_NY_OPEN",
+      74
+    ],
+    [
+      "GANN_ANG_OVER_DOWN",
+      72
+    ],
+    [
+      "GANN_ANG_ALERT",
+      72
+    ],
+    [
+      "SOFT",
+      62
+    ],
+    [
+      "ICT_DISP_OK",
+      60
+    ],
+    [
+      "GANN_REV_CANDLE",
+      32
+    ],
+    [
+      "ICT_SWEEP_EQH",
+      21
+    ],
+    [
+      "ICT_SWEEP_ALH",
+      20
+    ],
+    [
+      "ICT_SWEEP_AHH",
+      14
+    ],
+    [
+      "CONFLICT",
+      12
+    ],
+    [
+      "ICT_SWEEP_PDL",
+      12
+    ],
+    [
+      "ICT_KZ_LONDON_OPEN",
+      10
+    ],
+    [
+      "GANN_KZ_LONDON_OPEN",
+      10
+    ],
+    [
+      "ICT_KZ_NY_OPEN",
+      10
+    ],
+    [
+      "GANN_KZ_NY_OPEN",
+      10
+    ],
+    [
+      "GANN_TSQ_NEAR",
+      9
+    ],
+    [
+      "GANN_CYC_1_4",
+      8
+    ],
+    [
+      "GANN_CYC_1_2",
+      8
+    ],
+    [
+      "ICT_KZ_NY_AFTERNOON",
+      8
+    ],
+    [
+      "GANN_KZ_NY_AFTERNOON",
+      8
+    ],
+    [
+      "GANN_CYC_1_8",
+      6
+    ],
+    [
+      "GANN_CYC_3_4",
+      6
+    ],
+    [
+      "GANN_CYC_1_3",
+      6
+    ],
+    [
+      "GANN_TSQ_45",
+      5
+    ]
+  ],
+  "first_ts": "2026-07-09T10:00:00Z",
+  "last_ts": "2026-07-17T18:00:00Z"
+}

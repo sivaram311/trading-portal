@@ -1,0 +1,5 @@
+style,bars_processed,trade_count,win_rate,profit_factor,expectancy_r,max_drawdown_pct,avg_win_r,avg_loss_r,total_r
+POSITIONAL,149,0,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000
+
+entry_time,exit_time,direction,mode,grade,entry_price,exit_price,r_multiple,exit_reason
+

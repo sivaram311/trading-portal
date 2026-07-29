@@ -1,0 +1,20 @@
+{
+  "style": "POSITIONAL",
+  "bars_processed": 349,
+  "trade_count": 0,
+  "win_rate": 0.0,
+  "profit_factor": 0.0,
+  "expectancy_r": 0.0,
+  "max_drawdown_pct": 0.0,
+  "avg_win_r": 0.0,
+  "avg_loss_r": 0.0,
+  "total_r": 0.0,
+  "m15_bars_used": 400,
+  "_meta": {
+    "style_param": "POSITIONAL",
+    "maxBars": 400,
+    "walkForward": false,
+    "monteCarlo": false,
+    "mcIterations": 200
+  }
+}

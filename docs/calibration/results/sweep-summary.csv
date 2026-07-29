@@ -1,0 +1,13 @@
+tag,style,maxBars,bars_processed,trade_count,win_rate,profit_factor,expectancy_r,max_drawdown_pct,avg_win_r,avg_loss_r,total_r,walkForward,monteCarlo,error
+DAY_200_wf0_mc0,DAY,200,149,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+DAY_400_wf0_mc0,DAY,400,349,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+DAY_585_wf0_mc0,DAY,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+DAY_585_wf1_mc1,DAY,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,
+POSITIONAL_200_wf0_mc0,POSITIONAL,200,149,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+POSITIONAL_400_wf0_mc0,POSITIONAL,400,349,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+POSITIONAL_585_wf0_mc0,POSITIONAL,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+POSITIONAL_585_wf1_mc1,POSITIONAL,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,
+SCALP_200_wf0_mc0,SCALP,200,149,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+SCALP_400_wf0_mc0,SCALP,400,349,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+SCALP_585_wf0_mc0,SCALP,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+SCALP_585_wf1_mc1,SCALP,585,534,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,

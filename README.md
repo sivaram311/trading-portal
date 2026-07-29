@@ -52,6 +52,8 @@ P5 micro-live stays **fail-closed** until exact unlock phrase.
 
 ## Next
 
-1. Paper calibration sweeps (`docs/calibration/`)
-2. DEV smoke of new surfaces (style / analytics / mitigation / multi-day)
+1. MT5 OHLC backfill (terminal IPC currently timing out) then re-run backtest sweep
+2. Paper calibration sweeps (`docs/calibration/`) after non-zero A/A+ sample
 3. Promote only after Reviewer GO + user promote decision
+
+**Latest paper backtest:** [`docs/calibration/BACKTEST-REPORT-2026-07-30.md`](docs/calibration/BACKTEST-REPORT-2026-07-30.md)

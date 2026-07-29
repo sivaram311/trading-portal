@@ -18,3 +18,7 @@ backend/target/
 agents/collab/**/agy-raw-out.txt
 agents/collab/**/agy-run.log
 
+
+docs/calibration/results/.bearer.token
+docs/calibration/results/*.token
+

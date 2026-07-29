@@ -1,9 +1,10 @@
 # Feature validation — trading-portal deep-algo / P5
 
-**When:** 2026-07-17 (baseline) · **updated 2026-07-30** (pending-feature wave closed)
-**Live tag:** `v0.3.2` on F/G (paper + P5 fail-closed) — this wave is **uncommitted DEV code**
-**Against:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md` phases A–D
-**Live inventory API:** `GET /api/ops/status` → `features` + `trading_style`
+**When:** 2026-07-17 (baseline) · **updated 2026-07-30** (pending-feature wave **pushed** + paper backtest baseline)  
+**Live tag:** `v0.3.2` on F/G (paper + P5 fail-closed) · DEV/`main` ahead with post-0.3.2 feature wave  
+**Against:** `docs/algorithms/DEEP-ALGORITHMS-AND-CALCULATIONS.md` phases A–D  
+**Live inventory API:** `GET /api/ops/status` → `features` + `trading_style`  
+**Backtest baseline:** `docs/calibration/BACKTEST-REPORT-2026-07-30.md`
 
 ## Verdict
 
@@ -43,4 +44,5 @@
 
 - Open calibration tasks (ATR time_scale, So9 steps, WF weight sweep) — docs/scripts only; defaults unchanged.
 - P5 micro-live arming — HOLD until `GO micro-live P5 on DEV only`.
-- Treat `/api/ops/status.features` as the honesty bar after deploy.
+- **Paper backtest baseline (2026-07-30):** [`docs/calibration/BACKTEST-REPORT-2026-07-30.md`](./calibration/BACKTEST-REPORT-2026-07-30.md) — 12/12 runs **0 trades** on M15 Jul 9–17 window (no A/A+); MT5 backfill blocked (IPC timeout). Treat `/api/ops/status.features` as the honesty bar after deploy.
+- FEATURE-VALIDATION header: wave is **pushed** on `main` (DEV); F/G still `v0.3.2`.

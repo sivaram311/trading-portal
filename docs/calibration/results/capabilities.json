@@ -1,0 +1,14 @@
+{
+  "paper_only": true,
+  "bar_by_bar": true,
+  "walk_forward": true,
+  "monte_carlo": true,
+  "styles": [
+    "SCALP",
+    "DAY",
+    "POSITIONAL"
+  ],
+  "active_style": "DAY",
+  "m15_bars_available": 585,
+  "csv_export": "embedded in POST /api/backtest/run response field trades_csv"
+}
