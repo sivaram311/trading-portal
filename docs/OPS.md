@@ -75,9 +75,16 @@ mvn -q -DskipTests spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
 ```powershell
-# UI :3341 (separate terminal; port reserved in MyAgent ports registry)
+# UI :3341 (optional local serve)
 cd frontend
 npm start
+
+# Public DEV static (required for https://trading-portal-dev.delena.buzz)
+cd frontend
+npx ng build --configuration public-dev
+# nginx root: frontend/dist/public-dev/browser
+# conf: deploy/nginx/trading-portal-dev.delena.buzz.conf → copy to C:\nginx-1.30.3\conf\apps\
+# reload: Start-ScheduledTask -TaskName NginxReload-ProductionHouse
 ```
 
 On API startup the app:

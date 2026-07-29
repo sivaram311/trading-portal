@@ -35,12 +35,19 @@ trading-portal/
 # API — loads DB secrets from E:\MyAgent\workflow\db\secrets\postgres.env
 powershell -File scripts\run-api-dev.ps1
 
-# UI (separate terminal)
+# UI static for public DEV host (nginx root)
+cd frontend; npx ng build --configuration public-dev
+
+# Optional local ng serve
 cd frontend; npm start   # http://127.0.0.1:3341
 ```
 
-Ports: **3340** API · **3341** UI · **3342** ingest — reserved in `E:\MyAgent\workflow\ports\`.  
-Auth: CSS (`centralized-security-system`); DEV may use `X-Dev-Token: dev-operator-token` when bypass is on.  
+**Public DEV:** https://trading-portal-dev.delena.buzz  
+- nginx: `deploy/nginx/trading-portal-dev.delena.buzz.conf` → live `C:\nginx-1.30.3\conf\apps\`  
+- UI: `frontend/dist/public-dev/browser` · API `:3340` · auth/JWKS **css-next `:4910`**  
+- Reload nginx via Session-0 task `NginxReload-ProductionHouse` (not interactive `nginx -s reload`)
+
+Ports: **3340** API · **3341** UI serve · **3342** ingest — reserved in `E:\MyAgent\workflow\ports\`.  
 P5 micro-live stays **fail-closed** until exact unlock phrase.
 
 ## Next
