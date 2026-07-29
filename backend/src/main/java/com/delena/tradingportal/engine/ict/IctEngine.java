@@ -95,16 +95,20 @@ public class IctEngine {
             default -> { }
         }
 
-        // --- Zones: order blocks + FVGs + breakers + IFVGs + OTE + active entry ---
+        // --- Zones: order blocks + FVGs + breakers + IFVGs + mitigation blocks + OTE + active entry ---
         List<IctSnapshot.Zone> fvgs = detectFvgs(m15, cfg);
         List<IctSnapshot.Zone> obs = deriveOrderBlocks(m15, structure.direction(), displacement);
         List<IctSnapshot.Zone> breakers = deriveBreakers(m15, obs);
         List<IctSnapshot.Zone> ifvgs = deriveIfvgs(m15, fvgs);
+        // Prefer the standalone detector; deriveMitigationsInline below is a documented fallback only.
+        // 3-arg overload lets a touch confirm its reaction via FVG confluence inside the OB (§2.8).
+        List<IctSnapshot.Zone> mitigations = MitigationDetector.deriveMitigations(m15, obs, fvgs);
         OteCalculator.ImpulseSwing impulse = OteCalculator.deriveImpulseSwing(swings, structure.direction());
         OteCalculator.OteZone activeOte = impulse == null
                 ? null
                 : OteCalculator.computeOte(impulse.start(), impulse.end(), structure.direction());
-        EntrySelection entryPick = selectEntry(obs, fvgs, breakers, ifvgs, structure.direction(), activeOte);
+        EntrySelection entryPick = selectEntry(obs, fvgs, breakers, ifvgs, mitigations,
+                structure.direction(), activeOte);
         IctSnapshot.Zone activeEntry = entryPick.zone();
         if (activeEntry != null) {
             switch (activeEntry.type()) {
@@ -120,8 +124,11 @@ public class IctEngine {
             if (entryPick.unicorn()) {
                 reasons.add("UNICORN");
             }
+            if (entryPick.mitigationOverlap()) {
+                reasons.add("MITIGATION_ACTIVE");
+            }
         }
-        var zones = new IctSnapshot.Zones(obs, fvgs, breakers, ifvgs, activeEntry,
+        var zones = new IctSnapshot.Zones(obs, fvgs, breakers, ifvgs, mitigations, activeEntry,
                 OteCalculator.toSnapshotOte(activeOte));
 
         // HTF conflict flag (§5.3/§7): structure direction opposes HTF bias.
@@ -143,7 +150,7 @@ public class IctEngine {
         var htf = new IctSnapshot.Htf(0, 0, 0, "EQ", "neutral");
         var structure = new IctSnapshot.Structure(List.of(), "none", "none", false);
         var liquidity = new IctSnapshot.Liquidity(List.of(), "none", null, false);
-        var zones = new IctSnapshot.Zones(List.of(), List.of(), List.of(), List.of(), null, null);
+        var zones = new IctSnapshot.Zones(List.of(), List.of(), List.of(), List.of(), List.of(), null, null);
         return new IctSnapshot(SYMBOL, asof, null, htf, structure, liquidity, zones, 0, reasons,
                 new IctSnapshot.RawRefs(List.of()));
     }
@@ -374,7 +381,7 @@ public class IctEngine {
         return out;
     }
 
-    record EntrySelection(IctSnapshot.Zone zone, boolean oteOverlap, boolean unicorn) {
+    record EntrySelection(IctSnapshot.Zone zone, boolean oteOverlap, boolean unicorn, boolean mitigationOverlap) {
     }
 
     private static final double OTE_SWEET_EPS = 1.0;
@@ -382,9 +389,20 @@ public class IctEngine {
     static EntrySelection selectEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs,
                                       List<IctSnapshot.Zone> breakers, List<IctSnapshot.Zone> ifvgs,
                                       String direction, OteCalculator.OteZone ote) {
+        return selectEntry(obs, fvgs, breakers, ifvgs, List.of(), direction, ote);
+    }
+
+    /**
+     * Overload accepting mitigation blocks (DEEP-ALGORITHMS §2.8): a candidate zone overlapping a
+     * mitigation block gets the same +1 scoring bonus as UNICORN confluence.
+     */
+    static EntrySelection selectEntry(List<IctSnapshot.Zone> obs, List<IctSnapshot.Zone> fvgs,
+                                      List<IctSnapshot.Zone> breakers, List<IctSnapshot.Zone> ifvgs,
+                                      List<IctSnapshot.Zone> mitigations,
+                                      String direction, OteCalculator.OteZone ote) {
         String want = "short".equals(direction) ? "bear" : "long".equals(direction) ? "bull" : null;
         if (want == null) {
-            return new EntrySelection(null, false, false);
+            return new EntrySelection(null, false, false, false);
         }
         List<IctSnapshot.Zone> candidates = new ArrayList<>();
         addDirectional(candidates, obs, want);
@@ -392,31 +410,34 @@ public class IctEngine {
         addDirectional(candidates, breakers, want);
         addDirectional(candidates, ifvgs, want);
         if (candidates.isEmpty()) {
-            return new EntrySelection(null, false, false);
+            return new EntrySelection(null, false, false, false);
         }
         if (ote == null) {
-            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false);
+            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false, false);
         }
 
         IctSnapshot.Zone best = null;
         int bestScore = -1;
         boolean bestOteOverlap = false;
         boolean bestUnicorn = false;
+        boolean bestMitigation = false;
         for (IctSnapshot.Zone z : candidates) {
-            int score = scoreEntryCandidate(z, ote, breakers, fvgs, ifvgs);
+            int score = scoreEntryCandidate(z, ote, breakers, fvgs, ifvgs, mitigations);
             boolean overlap = OteCalculator.overlapsOte(z, ote);
             boolean unicorn = isUnicornCandidate(z, breakers, fvgs, ifvgs);
+            boolean mitigated = overlapsAny(z, mitigations);
             if (score > bestScore || (score == bestScore && preferZoneType(z, best))) {
                 best = z;
                 bestScore = score;
                 bestOteOverlap = overlap;
                 bestUnicorn = unicorn;
+                bestMitigation = mitigated;
             }
         }
         if (bestScore <= 0) {
-            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false);
+            return new EntrySelection(fallbackEntry(obs, fvgs, breakers, ifvgs, want), false, false, false);
         }
-        return new EntrySelection(best, bestOteOverlap, bestUnicorn);
+        return new EntrySelection(best, bestOteOverlap, bestUnicorn, bestMitigation);
     }
 
     private static void addDirectional(List<IctSnapshot.Zone> out, List<IctSnapshot.Zone> zones, String want) {
@@ -471,9 +492,54 @@ public class IctEngine {
         return ifvgs;
     }
 
+    /**
+     * Simplified mitigation-block fallback (wick-touch + next-bar continuation, no rejection-wick /
+     * engulfing / FVG-confluence reaction check). {@link #compute} always calls the richer standalone
+     * {@link MitigationDetector#deriveMitigations}; this method is an unused integration hedge kept
+     * only in case that class is ever removed (DEEP-ALGORITHMS §2.8).
+     */
+    @SuppressWarnings("unused")
+    private static List<IctSnapshot.Zone> deriveMitigationsInline(List<OhlcBar> bars, List<IctSnapshot.Zone> obs) {
+        List<IctSnapshot.Zone> out = new ArrayList<>();
+        for (IctSnapshot.Zone ob : obs) {
+            if (!"OB".equals(ob.type())) {
+                continue;
+            }
+            boolean bull = "bull".equals(ob.direction());
+            boolean bear = "bear".equals(ob.direction());
+            if (!bull && !bear) {
+                continue;
+            }
+            int obIdx = barIndex(bars, ob.ts());
+            if (obIdx < 0) {
+                continue;
+            }
+            for (int i = obIdx + 1; i < bars.size(); i++) {
+                OhlcBar touch = bars.get(i);
+                boolean closedThrough = bull ? touch.close() < ob.low() : touch.close() > ob.high();
+                if (closedThrough) {
+                    break;
+                }
+                boolean wickTouch = touch.low() <= ob.high() && touch.high() >= ob.low();
+                if (!wickTouch || i + 1 >= bars.size()) {
+                    continue;
+                }
+                OhlcBar next = bars.get(i + 1);
+                boolean continues = bull ? next.close() > touch.close() : next.close() < touch.close();
+                if (continues) {
+                    out.add(new IctSnapshot.Zone("MITIGATION", ob.direction(), ob.low(), ob.high(),
+                            "mitigated", next.ts()));
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+
     private static int scoreEntryCandidate(IctSnapshot.Zone z, OteCalculator.OteZone ote,
                                            List<IctSnapshot.Zone> breakers,
-                                           List<IctSnapshot.Zone> fvgs, List<IctSnapshot.Zone> ifvgs) {
+                                           List<IctSnapshot.Zone> fvgs, List<IctSnapshot.Zone> ifvgs,
+                                           List<IctSnapshot.Zone> mitigations) {
         int score = 0;
         if (OteCalculator.overlapsOte(z, ote)) {
             score += 2;
@@ -485,6 +551,9 @@ public class IctEngine {
             score += 1;
         }
         if (isUnicornCandidate(z, breakers, fvgs, ifvgs)) {
+            score += 1;
+        }
+        if (overlapsAny(z, mitigations)) {
             score += 1;
         }
         return score;

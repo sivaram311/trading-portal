@@ -112,7 +112,7 @@ public class LiveTradingService {
         Instant now = Instant.now();
         PaperJournalEntry.Paper paper = new PaperJournalEntry.Paper(
                 now, null, fill.fillPrice(), null, null, null, null, null,
-                d.stop(), 1.0, false, false);
+                d.stop(), 1.0, false, false, 1, List.of());
         // Embed live metadata in action note / payload extension via reasons already on entry
         PaperJournalEntry entry = new PaperJournalEntry(
                 UUID.randomUUID().toString(), d.id(), d.symbol(), NyTime.sessionDate(d.ts()),

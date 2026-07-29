@@ -1,4 +1,13 @@
-import { ConfluenceDecision, GannSnapshot, IctSnapshot, PaperJournalEntry } from './models';
+import { ConfluenceDecision, GannSnapshot, IctSnapshot, OhlcBar, PaperJournalEntry, Timeframe } from './models';
+
+const TF_MS: Record<Timeframe, number> = {
+  M1: 60_000,
+  M5: 5 * 60_000,
+  M15: 15 * 60_000,
+  H1: 3_600_000,
+  H4: 4 * 3_600_000,
+  D1: 24 * 3_600_000
+};
 
 // Deterministic offline fixtures so the portal is demoable with the backend down.
 // Numbers are illustrative XAUUSD levels, not a live signal.
@@ -49,6 +58,54 @@ export const MOCK_GANN: GannSnapshot = {
     nearest: { kind: 'odd', k: 1, price: 2404.5, dist: -8.7 }
   }
 };
+
+/**
+ * Deterministic OHLC walk ending near MOCK_DECISION's entry zone, so the
+ * candle chart lines up with the mock overlays when the backend is down.
+ * Seeded (mulberry32) rather than Math.random for reproducible fixtures.
+ */
+export function mockOhlc(tf: Timeframe = 'M15', bars = 96): OhlcBar[] {
+  let seed = 0x9e3779b9;
+  const rand = () => {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+
+  const endClose = (MOCK_DECISION.entry.low + MOCK_DECISION.entry.high) / 2;
+  const step = tf === 'M1' || tf === 'M5' ? 0.9 : tf === 'M15' ? 1.6 : tf === 'H1' ? 2.6 : tf === 'H4' ? 4.2 : 7.5;
+  const closes: number[] = new Array(bars);
+  closes[bars - 1] = endClose;
+  for (let i = bars - 2; i >= 0; i--) {
+    const drift = (rand() - 0.5) * step;
+    closes[i] = closes[i + 1] - drift;
+  }
+
+  const to = new Date();
+  const out: OhlcBar[] = [];
+  for (let i = 0; i < bars; i++) {
+    const open = i === 0 ? closes[0] + (rand() - 0.5) * step * 0.4 : closes[i - 1];
+    const close = closes[i];
+    const wick = step * (0.3 + rand() * 0.5);
+    const high = Math.max(open, close) + wick * rand();
+    const low = Math.min(open, close) - wick * rand();
+    const ts = new Date(to.getTime() - (bars - 1 - i) * TF_MS[tf]);
+    out.push({
+      symbol: 'XAUUSD',
+      tf,
+      ts: ts.toISOString(),
+      ny_time: ts.toISOString(),
+      open: Number(open.toFixed(2)),
+      high: Number(high.toFixed(2)),
+      low: Number(low.toFixed(2)),
+      close: Number(close.toFixed(2)),
+      volume: Math.round(50 + rand() * 400)
+    });
+  }
+  return out;
+}
 
 export function mockJournal(): PaperJournalEntry[] {
   const day = new Date().toISOString().slice(0, 10);

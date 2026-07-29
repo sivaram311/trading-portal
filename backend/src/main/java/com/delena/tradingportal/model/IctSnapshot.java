@@ -58,9 +58,15 @@ public record IctSnapshot(
             List<Zone> fvgs,
             List<Zone> breakers,
             List<Zone> ifvgs,
+            List<Zone> mitigationBlocks,
             Zone activeEntry,
             OteZone activeOte
     ) {
+        /** Back-compat for call sites predating {@code mitigationBlocks} (DEEP-ALGORITHMS §2.8). */
+        public Zones(List<Zone> orderBlocks, List<Zone> fvgs, List<Zone> breakers, List<Zone> ifvgs,
+                     Zone activeEntry, OteZone activeOte) {
+            this(orderBlocks, fvgs, breakers, ifvgs, List.of(), activeEntry, activeOte);
+        }
     }
 
     public record RawRefs(List<String> barIds) {

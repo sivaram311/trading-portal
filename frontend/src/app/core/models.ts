@@ -89,6 +89,15 @@ export interface JournalListResponse {
   offset: number;
 }
 
+/** User-selectable trading cadence (distinct from the confluence engine `Mode`). */
+export type TradingStyle = 'SCALP' | 'DAY' | 'POSITIONAL';
+
+export interface StyleInfo {
+  style: TradingStyle;
+  source?: 'user' | 'ops' | 'default';
+  updated_at?: string;
+}
+
 export interface HealthResponse {
   status: 'ok' | 'degraded' | 'down';
   ts: string;
@@ -146,4 +155,44 @@ export interface GannSnapshot {
     at_level: boolean;
     nearest?: GannSo9Level | null;
   };
+}
+
+export type Timeframe = 'M1' | 'M5' | 'M15' | 'H1' | 'H4' | 'D1';
+
+/** One OHLCV bar for XAUUSD (docs/contracts/schemas/ohlc-bar.json). */
+export interface OhlcBar {
+  symbol: 'XAUUSD';
+  tf: Timeframe;
+  ts: string;
+  ny_time: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  broker_time?: string | null;
+}
+
+/** GET /api/analytics/summary — headline paper-trading performance. */
+export interface AnalyticsSummary {
+  trade_count: number;
+  win_rate: number;
+  expectancy_r: number;
+  profit_factor?: number | null;
+  avg_win_r?: number | null;
+  avg_loss_r?: number | null;
+  total_r?: number | null;
+  as_of?: string;
+}
+
+/** One row of GET /api/analytics/by-session. */
+export interface SessionBreakdownRow {
+  session: string;
+  trade_count: number;
+  win_rate: number;
+  expectancy_r: number;
+}
+
+export interface AnalyticsBySessionResponse {
+  sessions: SessionBreakdownRow[];
 }

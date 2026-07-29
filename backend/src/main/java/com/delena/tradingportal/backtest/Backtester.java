@@ -277,7 +277,7 @@ public class Backtester {
     private static PaperJournalEntry openPaperEntry(ConfluenceDecision d, double fillPrice, Instant when,
                                                     RiskVerdict risk) {
         var paper = new PaperJournalEntry.Paper(when, null, round(fillPrice), null, null, null,
-                null, null, d.stop(), 1.0, false, false);
+                null, null, d.stop(), 1.0, false, false, 1, List.of());
         return new PaperJournalEntry(
                 UUID.randomUUID().toString(), d.id(), d.symbol(),
                 NyTime.sessionDate(when), "PAPER_OPEN", d.mode(), d.direction(), d.grade(), d.score(),

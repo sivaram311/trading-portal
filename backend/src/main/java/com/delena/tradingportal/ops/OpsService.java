@@ -161,6 +161,11 @@ public class OpsService {
     /**
      * Honest deep-algo / P5 surface map for operators (IMPLEMENTED | PARTIAL | MISSING).
      * Source of truth for “are all features implemented?” — not marketing.
+     *
+     * <p><b>2026-07-30 closeout:</b> pending-feature wave green — {@code mvn test} 124/0,
+     * {@code ng build --configuration production} green. Pyramiding is ADD_LEG on the same open
+     * position only ({@code RiskGate.MAX_OPEN_POSITIONS=1}). P5 remains {@code CODED_FAIL_CLOSED}.
+     * See {@code docs/FEATURE-VALIDATION-0.3.1.md}.
      */
     public record FeatureInventory(
             String ote,
@@ -187,19 +192,19 @@ public class OpsService {
                     "IMPLEMENTED",
                     "IMPLEMENTED_BACKEND",
                     "IMPLEMENTED",
-                    "IMPLEMENTED_NO_PYRAMIDING",
+                    "IMPLEMENTED_WITH_PYRAMIDING",
                     "IMPLEMENTED_BACKEND",
                     "IMPLEMENTED_API",
                     "IMPLEMENTED_API",
                     "IMPLEMENTED",
                     "IMPLEMENTED",
                     "CODED_FAIL_CLOSED",
-                    "IMPLEMENTED_PRICE_RAIL",
-                    "MISSING",
-                    "MISSING",
-                    "MISSING_BY_DESIGN",
-                    "PARTIAL_CSV_API",
-                    "MISSING");
+                    "IMPLEMENTED_PRICE_RAIL_AND_CANDLES",
+                    "IMPLEMENTED",
+                    "IMPLEMENTED",
+                    "IMPLEMENTED_STYLE_MAXLEGS_MAX1OPEN",
+                    "IMPLEMENTED_UI",
+                    "IMPLEMENTED");
         }
     }
 }

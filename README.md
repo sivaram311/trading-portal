@@ -21,25 +21,30 @@ Reference only (do **not** fork as source of truth): `E:\Source\grok_dev` — ma
 
 ```
 trading-portal/
-├── agents/           # Crew + pre-work (personas gate)
-├── docs/
-│   ├── theory/       # ICT + Gann domain docs (Grok-authored)
-│   ├── algorithms/   # Computable signal / cycle engines
-│   └── reference/    # Pointers to grok_dev & MT5 lessons
-├── backend/          # (pending architecture approval)
-├── frontend/         # (pending architecture approval)
-├── python/           # Market data / research scripts (later)
-└── scripts/
+├── agents/           # Crew + pre-work / hires
+├── docs/             # Theory, algorithms, contracts, OPS, calibration
+├── backend/          # Spring Boot 3.3 API (:3340 DEV)
+├── frontend/         # Angular operator UI (:3341 DEV)
+├── python/           # MT5 ingest worker (:3342 DEV)
+└── scripts/          # run-api-dev, fleet checks, calibration
 ```
 
-## Machine rules
+## Run DEV (MyAgent)
 
-- Ports / DB / CSS: reserve in `E:\MyAgent\workflow\` **before** any listen or auth wiring.
-- Auth for the portal: **CSS only** (`centralized-security-system`, DEV `:9000`).
-- Pre-work under `agents/pre-work/` must be approved before application coding (CONSCIOUS + personas).
+```powershell
+# API — loads DB secrets from E:\MyAgent\workflow\db\secrets\postgres.env
+powershell -File scripts\run-api-dev.ps1
+
+# UI (separate terminal)
+cd frontend; npm start   # http://127.0.0.1:3341
+```
+
+Ports: **3340** API · **3341** UI · **3342** ingest — reserved in `E:\MyAgent\workflow\ports\`.  
+Auth: CSS (`centralized-security-system`); DEV may use `X-Dev-Token: dev-operator-token` when bypass is on.  
+P5 micro-live stays **fail-closed** until exact unlock phrase.
 
 ## Next
 
-1. Grok theory + algorithm pack under `docs/theory/` and `docs/algorithms/`
-2. Crew pre-work: vision → architecture → contracts → design → approval
-3. Port + DB reservation, then scaffold backend/frontend
+1. Paper calibration sweeps (`docs/calibration/`)
+2. DEV smoke of new surfaces (style / analytics / mitigation / multi-day)
+3. Promote only after Reviewer GO + user promote decision

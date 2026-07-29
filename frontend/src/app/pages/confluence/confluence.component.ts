@@ -4,13 +4,15 @@ import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { AuthService } from '../../core/auth.service';
-import { ConfluenceDecision, Direction, GannSnapshot, Grade, IctSnapshot } from '../../core/models';
+import { ConfluenceDecision, Direction, GannSnapshot, Grade, IctSnapshot, OhlcBar, Timeframe, TradingStyle } from '../../core/models';
 import { PriceLevelsComponent } from '../../components/price-levels/price-levels.component';
+import { StyleSelectorComponent } from '../../components/style-selector/style-selector.component';
+import { CandleChartComponent } from '../../components/candle-chart/candle-chart.component';
 
 @Component({
   selector: 'tp-confluence',
   standalone: true,
-  imports: [PriceLevelsComponent, RouterLink, DecimalPipe, DatePipe],
+  imports: [CandleChartComponent, PriceLevelsComponent, StyleSelectorComponent, RouterLink, DecimalPipe, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-10 pt-4">
@@ -22,13 +24,23 @@ import { PriceLevelsComponent } from '../../components/price-levels/price-levels
           </p>
           <h1 class="font-display text-xl font-600 leading-none text-slate-50">Trading Portal</h1>
         </div>
-        <button
-          (click)="logout()"
-          class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
-        >
-          {{ user() }} · exit
-        </button>
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/analytics"
+            class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
+          >
+            Analytics
+          </a>
+          <button
+            (click)="logout()"
+            class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
+          >
+            {{ user() }} · exit
+          </button>
+        </div>
       </header>
+
+      <tp-style-selector class="mt-3 block" [opsStyle]="tradingStyle()" (styleChanged)="onStyleChanged($event)" />
 
       @if (banner(); as b) {
         <div class="mt-3 rounded-lg border border-gold-500/40 bg-gold-500/10 px-3 py-2 text-[0.74rem] leading-snug text-gold-300">
@@ -61,9 +73,18 @@ import { PriceLevelsComponent } from '../../components/price-levels/price-levels
           <p class="mt-3 text-[0.95rem] leading-snug text-slate-300">{{ headlineReason() }}</p>
         </section>
 
-        <!-- dominant visual -->
-        <section class="mt-2 flex-1" data-testid="price-levels">
-          <tp-price-levels [decision]="d" [ict]="ict()" [gann]="gann()" />
+        <!-- dominant visual: OHLC candles with ICT/Gann overlays -->
+        <section class="mt-2" data-testid="candle-chart">
+          <tp-candle-chart [bars]="bars()" [tf]="tf()" [ict]="ict()" [gann]="gann()" />
+        </section>
+
+        <!-- secondary visual: compact price rail (entry/stop/targets geometry) -->
+        <section class="mt-3 flex-1" data-testid="price-levels">
+          <div class="mx-auto max-h-[190px] overflow-hidden">
+            <div class="origin-top scale-[0.62]">
+              <tp-price-levels [decision]="d" [ict]="ict()" [gann]="gann()" />
+            </div>
+          </div>
         </section>
 
         @if (engineTags().length) {
@@ -183,6 +204,8 @@ export class ConfluenceComponent implements OnInit {
   readonly decision = signal<ConfluenceDecision | null>(null);
   readonly ict = signal<IctSnapshot | null>(null);
   readonly gann = signal<GannSnapshot | null>(null);
+  readonly bars = signal<OhlcBar[]>([]);
+  readonly tf = signal<Timeframe>('M15');
   readonly tradingStyle = signal<string>('DAY');
   readonly loading = signal(true);
   readonly acting = signal(false);
@@ -240,12 +263,14 @@ export class ConfluenceComponent implements OnInit {
     forkJoin({
       decision: this.api.getLatestDecision(),
       ict: this.api.getIctSnapshot(),
-      gann: this.api.getGannSnapshot()
+      gann: this.api.getGannSnapshot(),
+      bars: this.api.getOhlc(this.tf())
     }).subscribe({
-      next: ({ decision, ict, gann }) => {
+      next: ({ decision, ict, gann, bars }) => {
         this.decision.set(decision);
         this.ict.set(ict);
         this.gann.set(gann);
+        this.bars.set(bars);
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
@@ -286,6 +311,10 @@ export class ConfluenceComponent implements OnInit {
         this.actionMsg.set(e?.error?.message || 'Dismiss failed.');
       }
     });
+  }
+
+  onStyleChanged(style: TradingStyle): void {
+    this.tradingStyle.set(style);
   }
 
   logout(): void {

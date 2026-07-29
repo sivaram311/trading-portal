@@ -16,12 +16,20 @@ import { Direction, Grade, JournalStatus, PaperJournalEntry } from '../../core/m
           <p class="font-mono text-[0.62rem] uppercase tracking-[0.38em] text-gold-400/80">Paper journal</p>
           <h1 class="font-display text-xl font-600 leading-none text-slate-50">Trading Portal</h1>
         </div>
-        <a
-          routerLink="/"
-          class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
-        >
-          ← live
-        </a>
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/analytics"
+            class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
+          >
+            Analytics
+          </a>
+          <a
+            routerLink="/"
+            class="font-mono text-[0.66rem] uppercase tracking-widest text-slate-500 transition hover:text-gold-300"
+          >
+            ← live
+          </a>
+        </div>
       </header>
 
       @if (banner(); as b) {

@@ -20,5 +20,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/journal/journal.component').then((m) => m.JournalComponent),
     title: 'Journal · Trading Portal'
   },
+  {
+    path: 'analytics',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/analytics/analytics.component').then((m) => m.AnalyticsComponent),
+    title: 'Analytics · Trading Portal'
+  },
   { path: '**', redirectTo: '' }
 ];

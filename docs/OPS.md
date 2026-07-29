@@ -20,14 +20,19 @@ How to run and verify the DEV vertical slice (backend + engines). Paper-only; **
 | Breaker / IFVG | Polarity-flip POIs; `UNICORN` when breaker∩FVG/IFVG |
 | Style | `trading.style=SCALP\|DAY\|POSITIONAL` (default DAY) |
 | QualityGate | spread / ATR extreme / gap / duplicate → deny even A+ |
-| PositionManager | BE@1R, partial T1, ATR trail; **max 1 open** (no pyramiding) |
+| PositionManager | BE@1R, partial T1, ATR trail, ADD_LEG; **max 1 open** (legs on same position) |
 | Backtester | bar-by-bar + walk-forward + Monte-Carlo · **`POST /api/backtest/run`** |
 | Ops inventory | `GET /api/ops/status` → `trading_style` + `features` (IMPLEMENTED / MISSING map) |
-| UI overlays | Confluence price rail: OB/FVG/BREAKER/IFVG/OTE/So9/1×1 |
+| UI overlays | Confluence price rail + **candle chart** (`CandleChartComponent`) |
 | DXY SMT | Confirmation only (`SmtDetector`); soft fail if no DXY bars |
 | Paper close | `POST /api/paper/close` `{ decision_id, exit_reason, exit_price }` |
+| Mitigation Block | **IMPLEMENTED** — `MitigationDetector` + `IctEngine` + `Zones.mitigationBlocks` |
+| Multi-day Gann | **IMPLEMENTED** — `MultiDayCycleCalculator` + `GannEngine` (observe-only, §7) |
+| Pyramiding (ADD_LEG) | **IMPLEMENTED** — style maxLegs; never opens a 2nd position |
+| Style selector UI | **IMPLEMENTED** — `GET`/`PUT /api/style` + `tp-style-selector` |
+| Analytics dashboard | **IMPLEMENTED** — `/api/analytics/*` + `/analytics` page |
 
-Smoke evidence: `docs/DEEP-ALGO-DEV-SMOKE-0.3.md`.
+Smoke evidence: `docs/DEEP-ALGO-DEV-SMOKE-0.3.md`. Wave closeout: `docs/FEATURE-VALIDATION-0.3.1.md`.
 
 ---
 
@@ -55,9 +60,10 @@ The DEV DB password is **not** committed. Provide it one of two ways:
 `application-dev.properties` reads `${TRADING_PORTAL_ROLE_DEV_PASSWORD}` / the local file â€” it holds
 **no** secret itself.
 
-## 3. Run the API (DEV)
+## 3. Run DEV (API + UI)
 
 ```powershell
+# API :3340 — loads DB secrets from E:\MyAgent\workflow\db\secrets\postgres.env
 powershell -File scripts\run-api-dev.ps1
 ```
 
@@ -68,7 +74,13 @@ cd backend
 mvn -q -DskipTests spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 
-On startup the app:
+```powershell
+# UI :3341 (separate terminal; port reserved in MyAgent ports registry)
+cd frontend
+npm start
+```
+
+On API startup the app:
 - runs Flyway migrations `V1__init` + `V2__live_journal_indexes` into schema `dev`,
 - seeds ~500+ synthetic XAUUSD M5/M15/H1 bars **if `ohlc_candle` is empty** (`trading.seed.enabled=true`),
 - computes and persists the latest ICT + Gann snapshots, the graded `ConfluenceDecision`, its
@@ -138,6 +150,10 @@ Invoke-WebRequest -UseBasicParsing -Headers $h 'http://127.0.0.1:3340/api/paper/
 | GET | `/api/backtest/capabilities` | yes | paper-only backtest surface (styles, bar counts) |
 | POST | `/api/backtest/run` | yes | bar-by-bar metrics; optional `walkForward` / `monteCarlo` query flags |
 | GET | `/api/live/gate` | yes | P5 gate verdict (default deny on F/G) |
+| GET | `/api/style` | yes | active style + key fields for SCALP/DAY/POSITIONAL profiles |
+| PUT | `/api/style` | yes | runtime style override (`{"style":"SCALP"\|"DAY"\|"POSITIONAL"}`); no restart, paper-only |
+| GET | `/api/analytics/summary` | yes | paper expectancy / win-rate / mode+killzone hints |
+| GET | `/api/analytics/by-session` | yes | breakdown by killzone (else NY hour bucket) |
 | POST | `/api/live/confirm` | yes | micro-live open when gate ok (DEV only) |
 | GET/POST | `/api/ops/kill-switch` | yes | engage/clear P5 kill switch |
 

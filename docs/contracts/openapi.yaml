@@ -29,14 +29,98 @@ tags:
   - name: engines
   - name: confluence
   - name: paper-trading
+  - name: style
+  - name: analytics
   - name: ops
   - name: backtest
   - name: live
+  - name: style
 
 security:
   - bearerAuth: []
 
 paths:
+  /api/style:
+    get:
+      tags: [style]
+      summary: Get the active paper-trading style and available profiles
+      description: >-
+        Returns the runtime style selection and its effective profile. Style selection affects
+        paper-path engine thresholds and lifecycle hints only; it neither enables nor submits
+        live trading.
+      operationId: getTradingStyle
+      responses:
+        "200":
+          description: Active style and all selectable profile summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [style]
+      summary: Change the active paper-trading style at runtime
+      description: >-
+        Updates the in-memory style used by subsequent pipeline and paper-path evaluations; a
+        process restart is not required. This endpoint does not alter live-execution settings.
+      operationId: updateTradingStyle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StyleUpdateRequest"
+      responses:
+        "200":
+          description: Updated active style and profile summaries.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/analytics/summary:
+    get:
+      tags: [analytics]
+      summary: Summarize closed paper-trade performance
+      description: >-
+        Paper-first performance metrics (expectancy, win rate, avg R) derived from closed
+        `paper_journal` rows. Fails soft: returns zeroed/null metrics (never 4xx/5xx) when no
+        eligible closed trades exist yet.
+      operationId: getAnalyticsSummary
+      responses:
+        "200":
+          description: Aggregate closed-trade statistics, with optional mode/killzone group hints.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/analytics/by-session:
+    get:
+      tags: [analytics]
+      summary: Break down closed paper-trade performance by session
+      description: >-
+        Groups closed paper trades by ICT killzone (LONDON_OPEN/NY_OPEN/NY_AFTERNOON) when any
+        closed trade carries one, otherwise falls back to an NY-local hour-bucket label. An empty
+        `sessions` array is returned when there are no closed trades — never an error.
+      operationId: getAnalyticsBySession
+      responses:
+        "200":
+          description: Per-session or hour-bucket closed-trade statistics.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsBySessionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/health:
     get:
       tags: [health]
@@ -410,6 +494,53 @@ paths:
         "422":
           description: insufficient OHLC bars
 
+  /api/style:
+    get:
+      tags: [style]
+      summary: Current trading style + all preset profiles
+      description: >-
+        Reads the live `trading.style` value (default from `application.properties`, or a prior
+        runtime override via PUT). Paper-only — affects engine thresholds, not live execution.
+      operationId: getStyle
+      responses:
+        "200":
+          description: Active style + key fields for SCALP/DAY/POSITIONAL.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleStatusResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    put:
+      tags: [style]
+      summary: Override the active trading style at runtime (no restart)
+      description: >-
+        Updates `TradingProperties.style` in place (thread-safe volatile field + synchronized
+        setter). Picked up by the very next pipeline recompute tick, since `PipelineService`
+        re-reads `props.getStyle()` on every run rather than caching it at startup.
+      operationId: setStyle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StyleUpdateRequest"
+      responses:
+        "200":
+          description: Style updated; response mirrors GET /api/style with the new active style.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StyleStatusResponse"
+        "400":
+          description: Missing/invalid style (must be SCALP|DAY|POSITIONAL).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
   /api/live/gate:
     get:
       tags: [live]
@@ -551,6 +682,72 @@ components:
           type: number
           format: double
 
+    StyleUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [style]
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+
+    StyleProfileSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - style
+        - risk_pct
+        - max_legs
+        - max_spread_pts
+        - max_hold
+        - require_killzone
+        - be_trigger_r
+        - scale_out_pct
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+        risk_pct:
+          type: number
+          format: double
+          description: Profile metadata only — paper RiskGate still enforces 0.5%/max-1-open.
+        max_legs:
+          type: integer
+        max_spread_pts:
+          type: number
+          format: double
+        max_hold:
+          type: string
+          description: ISO-8601 duration (e.g. `PT45M`, `PT8H`, `PT120H`).
+        require_killzone:
+          type: boolean
+        be_trigger_r:
+          type: number
+          format: double
+        scale_out_pct:
+          type: number
+          format: double
+
+    StyleStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [style, max_legs, risk_pct, profiles]
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+          description: Currently active style (post-update value on PUT responses).
+        max_legs:
+          type: integer
+        risk_pct:
+          type: number
+          format: double
+        profiles:
+          type: array
+          description: Key fields for all three presets (SCALP, DAY, POSITIONAL), regardless of which is active.
+          items:
+            $ref: "#/components/schemas/StyleProfileSummary"
+
     JournalListResponse:
       type: object
       additionalProperties: false
@@ -567,3 +764,166 @@ components:
           type: integer
         offset:
           type: integer
+
+    StyleUpdateRequest:
+      type: object
+      additionalProperties: false
+      required: [style]
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+
+    StyleResponse:
+      type: object
+      additionalProperties: false
+      required: [style, max_legs, risk_pct, profiles]
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+        max_legs:
+          type: integer
+          minimum: 1
+          description: Profile metadata; paper trading may enforce a stricter open-position limit.
+        risk_pct:
+          type: number
+          minimum: 0
+          description: Profile risk percentage metadata.
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/StyleProfile"
+
+    StyleProfile:
+      type: object
+      additionalProperties: false
+      required: [style, max_legs, risk_pct, require_killzone, be_trigger_r, scale_out_pct, max_spread_pts]
+      properties:
+        style:
+          type: string
+          enum: [SCALP, DAY, POSITIONAL]
+        max_legs:
+          type: integer
+          minimum: 1
+        risk_pct:
+          type: number
+          minimum: 0
+        max_hold:
+          type: string
+          description: Maximum holding duration, serialized as an ISO-8601 duration when exposed.
+        require_killzone:
+          type: boolean
+        be_trigger_r:
+          type: number
+          minimum: 0
+        scale_out_pct:
+          type: number
+          minimum: 0
+          maximum: 1
+        max_spread_pts:
+          type: number
+          minimum: 0
+
+    AnalyticsSummary:
+      type: object
+      additionalProperties: false
+      description: >-
+        Matches `frontend/src/app/core/models.ts` `AnalyticsSummary`. `profit_factor` /
+        `avg_win_r` / `avg_loss_r` / `total_r` are `null` when `trade_count` is 0.
+      required: [trade_count, win_rate, expectancy_r]
+      properties:
+        trade_count:
+          type: integer
+          minimum: 0
+        win_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        expectancy_r:
+          type: number
+        profit_factor:
+          type: number
+          nullable: true
+        avg_win_r:
+          type: number
+          nullable: true
+        avg_loss_r:
+          type: number
+          nullable: true
+          description: Negative-signed average losing R-multiple.
+        total_r:
+          type: number
+          nullable: true
+        as_of:
+          type: string
+          format: date-time
+          description: Server instant the summary was computed.
+        by_mode:
+          type: object
+          description: Optional group hints keyed by recorded confluence mode (R/C/T/NONE), when data exists.
+          additionalProperties:
+            $ref: "#/components/schemas/AnalyticsBreakdown"
+        by_killzone:
+          type: object
+          description: >-
+            Optional group hints keyed by ICT killzone (LONDON_OPEN/NY_OPEN/NY_AFTERNOON), when
+            any closed trade has one.
+          additionalProperties:
+            $ref: "#/components/schemas/AnalyticsBreakdown"
+
+    AnalyticsBySessionResponse:
+      type: object
+      additionalProperties: false
+      description: Matches `frontend/src/app/core/models.ts` `AnalyticsBySessionResponse`.
+      required: [sessions]
+      properties:
+        sessions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AnalyticsSession"
+
+    AnalyticsSession:
+      type: object
+      additionalProperties: false
+      required: [session, trade_count, win_rate, expectancy_r]
+      properties:
+        session:
+          type: string
+          description: Killzone label (LONDON_OPEN/NY_OPEN/NY_AFTERNOON/OUTSIDE_KILLZONE), or an "HH:00-HH:00" hour-bucket fallback.
+        trade_count:
+          type: integer
+          minimum: 0
+        win_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        expectancy_r:
+          type: number
+
+    AnalyticsBreakdown:
+      type: object
+      additionalProperties: false
+      required: [trade_count, win_rate, expectancy_r]
+      properties:
+        trade_count:
+          type: integer
+          minimum: 0
+        win_rate:
+          type: number
+          minimum: 0
+          maximum: 1
+        expectancy_r:
+          type: number
+        profit_factor:
+          type: number
+          nullable: true
+        avg_win_r:
+          type: number
+          nullable: true
+        avg_loss_r:
+          type: number
+          nullable: true
+        total_r:
+          type: number
+          nullable: true

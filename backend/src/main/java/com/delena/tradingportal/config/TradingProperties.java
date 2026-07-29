@@ -20,8 +20,13 @@ public class TradingProperties {
     private final Paper paper = new Paper();
     private final News news = new News();
     private final Ops ops = new Ops();
-    /** Active trading style preset (SCALP / DAY / POSITIONAL). Default DAY. */
-    private TradingStyle style = TradingStyle.DAY;
+    /**
+     * Active trading style preset (SCALP / DAY / POSITIONAL). Default DAY.
+     * {@code volatile} + a synchronized setter give safe publication for the runtime override
+     * exposed by {@code StyleController} (HTTP request thread) to readers such as
+     * {@code PipelineService} (scheduler thread) — no restart required.
+     */
+    private volatile TradingStyle style = TradingStyle.DAY;
 
     public Exec getExec() {
         return exec;
@@ -55,7 +60,7 @@ public class TradingProperties {
         return style;
     }
 
-    public void setStyle(TradingStyle style) {
+    public synchronized void setStyle(TradingStyle style) {
         this.style = style != null ? style : TradingStyle.DAY;
     }
 

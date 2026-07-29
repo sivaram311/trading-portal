@@ -77,6 +77,11 @@
           "type": "array",
           "items": { "$ref": "#/$defs/zone" }
         },
+        "mitigation_blocks": {
+          "type": "array",
+          "description": "First touch of an intact (non-breaker) order block that partially fills then continues in the OB's original direction (DEEP-ALGORITHMS §2.8); empty when none qualify.",
+          "items": { "$ref": "#/$defs/zone" }
+        },
         "active_entry": {
           "oneOf": [{ "$ref": "#/$defs/zone" }, { "type": "null" }]
         }
@@ -97,7 +102,7 @@
           "KZ_LONDON_OPEN", "KZ_NY_OPEN", "KZ_NY_AFTERNOON",
           "SWEEP_AHH", "SWEEP_ALH", "SWEEP_PDH", "SWEEP_PDL", "SWEEP_EQH", "SWEEP_EQL",
           "MSS_BULL", "MSS_BEAR", "BOS_BULL", "BOS_BEAR",
-          "DISP_OK", "OB_ACTIVE", "FVG_ACTIVE",
+          "DISP_OK", "OB_ACTIVE", "FVG_ACTIVE", "MITIGATION_ACTIVE",
           "PD_DISCOUNT", "PD_PREMIUM", "PD_EQ",
           "NEWS_VETO", "DATA_GAP", "HTF_CONFLICT"
         ]
@@ -145,11 +150,11 @@
       "additionalProperties": false,
       "required": ["type", "direction", "low", "high"],
       "properties": {
-        "type": { "type": "string", "enum": ["OB", "FVG"] },
+        "type": { "type": "string", "enum": ["OB", "FVG", "MITIGATION"] },
         "direction": { "type": "string", "enum": ["bull", "bear"] },
         "low": { "type": "number" },
         "high": { "type": "number" },
-        "state": { "type": "string", "enum": ["fresh", "tested", "filled"] },
+        "state": { "type": "string", "enum": ["fresh", "tested", "filled", "mitigated"] },
         "ts": { "type": "string", "format": "date-time" }
       }
     }

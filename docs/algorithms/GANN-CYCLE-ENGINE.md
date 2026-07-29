@@ -70,6 +70,9 @@ GannSnapshot {
   cycles: {
     session_fraction: float
     checkpoint: label|none
+    multi_day_origin: { price, date, kind: swing_high|swing_low|anchor }|none  // §7, from D1
+    multi_day_checkpoints: { day_count, date, active_today: bool, near: bool }[]
+    multi_day_label: label|none  // nearest active/near checkpoint, e.g. MULTI_DAY_7
   }
   killzone: enum|none
   filters: { volume_spike, reversal_candle, rsi_div? }
@@ -203,21 +206,30 @@ TSQ_45 | TSQ_90 | TSQ_180 | TSQ_NEAR
 CYC_1_4 | CYC_1_2 | CYC_3_4 | ...
 KZ_* | VOL_SPIKE | REV_CANDLE | RSI_DIV
 PIVOT_NY_OPEN | PIVOT_PDH | ...
+MULTI_DAY_CYCLE_NEAR  // §7 — active/near 3/7/14/21-day checkpoint (HTF bias only; see cycles.multi_day_*)
 ```
 
 ---
 
 ## 7. Multi-day cycle module (observe-only v1)
 
+**Implemented:** `MultiDayCycleCalculator` (called from `GannEngine`), using `bars_d1` when the
+caller supplies it. Anchors on the most recent D1 fractal swing high/low (2-bar wing, 60-bar
+lookback; falls back to the oldest bar in the lookback window when no fractal is found), then
+projects forward trading-day (Mon–Fri, no holiday calendar) checkpoints at the classic counts.
+
 ```text
 SwingCycleOverlay {
-  origin_swing: { price, date }
+  origin_swing: { price, date, kind: swing_high|swing_low|anchor }
   day_counts: [3, 7, 14, 21]
-  hits: { day_count, date, active_today: bool }[]
+  hits: { day_count, date, active_today: bool, near: bool }[]
 }
 ```
 
-Emit beside intraday snapshot; **do not** increment automation quality from these until research sign-off.
+Emit beside intraday snapshot as `cycles.multi_day_origin` / `cycles.multi_day_checkpoints` /
+`cycles.multi_day_label`, plus reason code `MULTI_DAY_CYCLE_NEAR` when any checkpoint is active or
+near. This is an **HTF bias label only** — it does **not** increment `quality`/score and must
+never be wired into automation/order placement until research sign-off.
 
 ---
 

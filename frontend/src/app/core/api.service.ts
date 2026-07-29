@@ -3,14 +3,49 @@ import { Injectable, signal } from '@angular/core';
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  AnalyticsBySessionResponse,
+  AnalyticsSummary,
   ConfluenceDecision,
   GannSnapshot,
   HealthResponse,
   IctSnapshot,
   JournalListResponse,
-  PaperJournalEntry
+  OhlcBar,
+  PaperJournalEntry,
+  StyleInfo,
+  Timeframe,
+  TradingStyle
 } from './models';
-import { MOCK_DECISION, MOCK_GANN, MOCK_ICT, mockJournal } from './mock-data';
+import { MOCK_DECISION, MOCK_GANN, MOCK_ICT, mockJournal, mockOhlc } from './mock-data';
+
+const TF_MS: Record<Timeframe, number> = {
+  M1: 60_000,
+  M5: 5 * 60_000,
+  M15: 15 * 60_000,
+  H1: 3_600_000,
+  H4: 4 * 3_600_000,
+  D1: 24 * 3_600_000
+};
+
+// Deterministic offline fixtures for the analytics page (kept local — mock-data.ts owned elsewhere).
+const MOCK_ANALYTICS_SUMMARY: AnalyticsSummary = {
+  trade_count: 42,
+  win_rate: 0.55,
+  expectancy_r: 0.31,
+  profit_factor: 1.62,
+  avg_win_r: 1.48,
+  avg_loss_r: -0.86,
+  total_r: 13.0,
+  as_of: new Date().toISOString()
+};
+
+const MOCK_ANALYTICS_BY_SESSION: AnalyticsBySessionResponse = {
+  sessions: [
+    { session: 'ASIA', trade_count: 9, win_rate: 0.44, expectancy_r: 0.05 },
+    { session: 'LONDON', trade_count: 15, win_rate: 0.6, expectancy_r: 0.42 },
+    { session: 'NY', trade_count: 18, win_rate: 0.56, expectancy_r: 0.38 }
+  ]
+};
 
 /**
  * Talks to the Spring Boot API (:3340). The backend may not be up yet — every
@@ -118,6 +153,62 @@ export class ApiService {
           return of(this.simulate(decisionId, 'DISMISSED', reason));
         })
       );
+  }
+
+  /** OHLC bars for the candle chart. `bars` counts back from now at the timeframe's native spacing. */
+  getOhlc(tf: Timeframe = 'M15', bars = 96): Observable<OhlcBar[]> {
+    const to = new Date();
+    const from = new Date(to.getTime() - bars * TF_MS[tf]);
+    const params = new HttpParams().set('tf', tf).set('from', from.toISOString()).set('to', to.toISOString());
+    return this.http.get<OhlcBar[]>(this.base('/api/market/xauusd/ohlc'), { params }).pipe(
+      tap(() => this.usingMock.set(false)),
+      catchError(() => {
+        this.usingMock.set(true);
+        return of(mockOhlc(tf, bars));
+      })
+    );
+  }
+
+  /** User-selected trading style. Sibling backend endpoint may not exist yet — soft-fail to null so callers can fall back to ops tradingStyle. */
+  getStyle(): Observable<StyleInfo | null> {
+    return this.http.get<StyleInfo>(this.base('/api/style')).pipe(catchError(() => of(null)));
+  }
+
+  /** Persist the user-selected trading style. Soft-fails to null on error (e.g. endpoint not deployed yet). */
+  putStyle(style: TradingStyle): Observable<StyleInfo | null> {
+    return this.http
+      .put<StyleInfo>(this.base('/api/style'), { style })
+      .pipe(catchError(() => of(null)));
+  }
+
+  /** Headline paper-trading performance. Soft-fails to a zeroed summary (renders empty state). */
+  getAnalyticsSummary(): Observable<AnalyticsSummary> {
+    return this.http.get<AnalyticsSummary>(this.base('/api/analytics/summary')).pipe(
+      tap(() => this.usingMock.set(false)),
+      catchError(() => {
+        this.usingMock.set(true);
+        return of(MOCK_ANALYTICS_SUMMARY);
+      })
+    );
+  }
+
+  /** Win rate / expectancy grouped by session (Asia/London/NY). Soft-fails to empty list. */
+  getAnalyticsBySession(): Observable<AnalyticsBySessionResponse> {
+    return this.http.get<AnalyticsBySessionResponse>(this.base('/api/analytics/by-session')).pipe(
+      tap(() => this.usingMock.set(false)),
+      catchError(() => {
+        this.usingMock.set(true);
+        return of(MOCK_ANALYTICS_BY_SESSION);
+      })
+    );
+  }
+
+  /** Runs the existing paper-only backtest and returns its embedded trades_csv for client-side export. */
+  exportBacktestCsv(): Observable<string | null> {
+    return this.http.post<{ trades_csv?: string }>(this.base('/api/backtest/run'), {}).pipe(
+      map((res) => res?.trades_csv ?? null),
+      catchError(() => of(null))
+    );
   }
 
   /** Local optimistic row when the paper API is unreachable (demo/offline). */

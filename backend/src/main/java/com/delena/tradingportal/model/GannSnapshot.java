@@ -3,6 +3,7 @@ package com.delena.tradingportal.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 /** Output of the Gann Cycle Engine (docs/contracts/schemas/gann-snapshot.json). */
@@ -54,7 +55,30 @@ public record GannSnapshot(
     ) {
     }
 
-    public record Cycles(double sessionFraction, String checkpoint) {
+    /**
+     * Multi-day swing-cycle overlay (GANN-CYCLE-ENGINE.md §7 — observe-only). {@code
+     * multiDayOrigin}/{@code multiDayCheckpoints}/{@code multiDayLabel} are additive and default
+     * to {@code null}/empty when D1 history is insufficient; {@code sessionFraction} and {@code
+     * checkpoint} (intraday session-cycle fields) are unchanged.
+     */
+    public record Cycles(
+            double sessionFraction,
+            String checkpoint,
+            MultiDayOrigin multiDayOrigin,
+            List<MultiDayCheckpoint> multiDayCheckpoints,
+            String multiDayLabel
+    ) {
+        /** Backward-compatible constructor for existing callers that only set the intraday fields. */
+        public Cycles(double sessionFraction, String checkpoint) {
+            this(sessionFraction, checkpoint, null, List.of(), null);
+        }
+    }
+
+    public record MultiDayOrigin(double price, LocalDate date, String kind) {
+    }
+
+    /** One projected day-count checkpoint (e.g. 3/7/14/21 trading days from the swing origin). */
+    public record MultiDayCheckpoint(int dayCount, LocalDate date, boolean activeToday, boolean near) {
     }
 
     public record Filters(boolean volumeSpike, boolean reversalCandle, Boolean rsiDiv) {

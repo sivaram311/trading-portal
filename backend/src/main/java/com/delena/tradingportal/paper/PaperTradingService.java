@@ -155,6 +155,50 @@ public class PaperTradingService {
         return manageOpenPositions(bar, style, recentBars, structureFlip ? "flip-all" : "none");
     }
 
+    /**
+     * Same as {@link #manageOpenPositions(OhlcBar, StyleProfile, List, String)}, plus an
+     * opportunistic ADD_LEG (limited pyramiding, DEEP-ALGORITHMS §7) attempt using the latest
+     * confluence signal. {@code addLegSignal} may be {@code null} (no add attempted that bar).
+     */
+    @Transactional
+    public int manageOpenPositions(OhlcBar bar, StyleProfile style, List<OhlcBar> recentBars,
+                                   String mssDirection, ConfluenceDecision addLegSignal, String actor) {
+        int updated = manageOpenPositions(bar, style, recentBars, mssDirection);
+        if (addLegSignal != null && tryAddLeg(addLegSignal, style, bar, actor) != null) {
+            updated++;
+        }
+        return updated;
+    }
+
+    /**
+     * Attempt to add a pyramided leg (ADD_LEG) to the single open paper position using a freshly
+     * graded confluence signal. Never opens a new position (RiskGate.MAX_OPEN_POSITIONS stays 1)
+     * and never touches live execution. Returns the updated journal payload when a leg was added,
+     * or {@code null} when there is no eligible open position or {@link PyramidPolicy} rejects it.
+     */
+    @Transactional
+    public JsonNode tryAddLeg(ConfluenceDecision signal, StyleProfile style, OhlcBar bar, String actor) {
+        if (signal == null || style == null || bar == null || "deny".equals(signal.automation())) {
+            return null;
+        }
+        List<PaperJournalEntity> openRows = journalRepo.findByStatusIn(List.of("PAPER_OPEN", "PARTIAL"));
+        if (openRows.size() != 1) {
+            return null;
+        }
+        PaperJournalEntity row = openRows.get(0);
+        PaperJournalEntry current = json.read(row.getPayload(), PaperJournalEntry.class);
+        if (!current.symbol().equals(signal.symbol())) {
+            return null;
+        }
+        PositionManager.AddLegResult result = positionManager.tryAddLeg(current, signal, bar, style);
+        if (!result.added()) {
+            return null;
+        }
+        Instant now = bar.ts() != null ? bar.ts() : Instant.now();
+        applyUpdate(row, row.getStatus(), now, actor != null ? actor : "system:pyramid", "ADD_LEG", result.entry());
+        return json.read(row.getPayload());
+    }
+
     private static boolean isOpposingMss(String positionDir, String mssDirection) {
         if (mssDirection == null || "none".equals(mssDirection)) {
             return false;
@@ -230,7 +274,7 @@ public class PaperTradingService {
         Instant now = Instant.now();
         double entryMid = round((current.entry().low() + current.entry().high()) / 2.0);
         var paper = new PaperJournalEntry.Paper(now, null, entryMid, null, null, null, null, null,
-                current.stop(), 1.0, false, false);
+                current.stop(), 1.0, false, false, 1, List.of());
         PaperJournalEntry updated = withAction(current, "PAPER_OPEN", now, actor, note, paper);
         applyUpdate(row, "PAPER_OPEN", now, actor, note, updated);
     }

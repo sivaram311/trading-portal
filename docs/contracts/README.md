@@ -31,6 +31,16 @@ All JSON Schema files use draft 2020-12 and are referenced from `openapi.yaml` v
 `$ref` (e.g. `./schemas/ohlc-bar.json`) rather than duplicated inline, so the schema files stay
 the single canonical definition for both API docs and any future contract-testing / codegen.
 
+## Wave API additions
+
+- `GET` / `PUT /api/style` expose and update the runtime paper-trading style (`SCALP`, `DAY`, or
+  `POSITIONAL`); they do not enable or submit live trades.
+- `GET /api/analytics/summary` and `GET /api/analytics/by-session` expose closed paper-journal
+  performance metrics, returning zero-valued or empty results when no closed trades exist.
+- `GET /api/market/xauusd/ohlc` remains the documented authenticated OHLC query surface.
+- Engine snapshots now expose ICT mitigation blocks and observe-only Gann multi-day cycle
+  checkpoints. Multi-day cycles inform HTF context only and never auto-trade.
+
 ## Conventions carried over from theory/algorithm docs
 
 - **Grades:** `A+ | A | B | C | F` (`CONFLUENCE-FRAMEWORK.md` §6.2). `F` = CONFLICT / news veto /

@@ -1,17 +1,22 @@
 package com.delena.tradingportal.paper;
 
 import com.delena.tradingportal.engine.style.StyleProfile;
+import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.OhlcBar;
 import com.delena.tradingportal.model.PaperJournalEntry;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Bar-by-bar paper position lifecycle: BE, partial at T1, ATR trail, exits.
- * Paper-only; no pyramiding ({@code maxLegs} = 1 on paper path).
+ * Bar-by-bar paper position lifecycle: BE, partial at T1, ATR trail, exits, and limited
+ * pyramiding (ADD_LEG, DEEP-ALGORITHMS §7). Paper-only; {@link #tryAddLeg} only ever adds size to
+ * the single already-open paper position — it never opens a new position, so
+ * {@code RiskGate.MAX_OPEN_POSITIONS} (1) is unaffected. Gating is delegated to
+ * {@link PyramidPolicy}.
  */
 @Component
 public class PositionManager {
@@ -126,7 +131,7 @@ public class PositionManager {
 
         var updatedPaper = new PaperJournalEntry.Paper(
                 paper.openedAt(), null, entryPrice, null, null, null, mfeR, maeR,
-                round(currentStop), round(remaining), beActive, t1Hit);
+                round(currentStop), round(remaining), beActive, t1Hit, paper.legs(), paper.addLegs());
         String status = t1Hit && remaining > 0 && remaining < 1.0 ? "PARTIAL" : entry.status();
         if (!"PARTIAL".equals(status) && !"PAPER_OPEN".equals(status)) {
             status = "PAPER_OPEN";
@@ -157,6 +162,63 @@ public class PositionManager {
                 entryPrice, risk, longDir);
     }
 
+    public record AddLegResult(PaperJournalEntry entry, boolean added, String reason) {
+    }
+
+    /**
+     * Attempt to add a pyramided leg (ADD_LEG) to an already-open paper position using a freshly
+     * graded confluence signal. Never opens a new position — only adds size to {@code entry},
+     * which must already be PAPER_OPEN/PARTIAL. Gated by {@link PyramidPolicy}; on rejection the
+     * entry is returned unchanged with {@code added=false} and a machine-readable reason.
+     */
+    public AddLegResult tryAddLeg(PaperJournalEntry entry, ConfluenceDecision signal, OhlcBar bar,
+                                  StyleProfile style) {
+        if (signal == null || bar == null || style == null) {
+            return new AddLegResult(entry, false, "MISSING_INPUT");
+        }
+        if (!"PAPER_OPEN".equals(entry.status()) && !"PARTIAL".equals(entry.status())) {
+            return new AddLegResult(entry, false, "NOT_OPEN");
+        }
+        PaperJournalEntry.Paper paper = entry.paper();
+        if (paper == null || paper.entryPrice() == null) {
+            return new AddLegResult(entry, false, "NOT_OPEN");
+        }
+        if (entry.symbol() != null && !entry.symbol().equals(signal.symbol())) {
+            return new AddLegResult(entry, false, "SYMBOL_MISMATCH");
+        }
+
+        double entryPrice = paper.entryPrice();
+        double initialStop = entry.stop();
+        double risk = Math.abs(entryPrice - initialStop);
+        if (risk <= 0) {
+            return new AddLegResult(entry, false, "NO_RISK");
+        }
+        boolean longDir = isLong(entry.direction());
+        double currentStop = paper.currentStop() != null ? paper.currentStop() : initialStop;
+        double unrealizedR = priceR(longDir, entryPrice, risk, bar.close());
+        int currentLegs = paper.legCount();
+
+        String reason = PyramidPolicy.rejectionReason(entry.direction(), signal.direction(), signal.grade(),
+                unrealizedR, currentLegs, style);
+        if (!PyramidPolicy.OK.equals(reason)) {
+            return new AddLegResult(entry, false, reason);
+        }
+
+        double addEntryPrice = bar.close();
+        var newLeg = new PaperJournalEntry.Paper.AddLeg(bar.ts() != null ? bar.ts() : Instant.now(),
+                round(addEntryPrice), round(currentStop), PyramidPolicy.ADD_LEG_SIZE_FRACTION,
+                PyramidPolicy.addLegRiskPct());
+        List<PaperJournalEntry.Paper.AddLeg> legs = new ArrayList<>(
+                paper.addLegs() != null ? paper.addLegs() : List.of());
+        legs.add(newLeg);
+
+        var updatedPaper = new PaperJournalEntry.Paper(
+                paper.openedAt(), null, entryPrice, null, null, null, paper.mfeR(), paper.maeR(),
+                round(currentStop), paper.remainingSize(), paper.beActive(), paper.t1Hit(),
+                currentLegs + 1, List.copyOf(legs));
+        return new AddLegResult(rebuild(entry, entry.status(), updatedPaper), true, PyramidPolicy.OK);
+    }
+
     public static double atr(List<OhlcBar> bars, int period) {
         if (bars == null || bars.size() < 2) {
             return 0;
@@ -185,10 +247,33 @@ public class PositionManager {
                             double entryPrice, double risk, boolean longDir) {
         Double t1 = firstTarget(entry);
         double rMultiple = realizedR(longDir, entryPrice, risk, t1Hit, t1, remaining, exitPrice);
+        rMultiple += addLegsR(longDir, paper.addLegs(), exitPrice);
         var closedPaper = new PaperJournalEntry.Paper(
                 paper.openedAt(), when, entryPrice, round(exitPrice), exitReason, round(rMultiple),
-                mfeR, maeR, round(currentStop), round(remaining), beActive, t1Hit);
+                mfeR, maeR, round(currentStop), round(remaining), beActive, t1Hit,
+                paper.legs(), paper.addLegs());
         return new BarResult(rebuild(entry, "PAPER_CLOSED", closedPaper), "PAPER_CLOSED", true);
+    }
+
+    /**
+     * ADD_LEG legs share the position's exit (stop/target/flip/time) but each risks its own
+     * distance (entry to the stop in force when it was added). Contribution is weighted by
+     * {@code sizeFraction} so the blended {@code rMultiple} stays denominated in units of the
+     * initial leg's risk.
+     */
+    static double addLegsR(boolean longDir, List<PaperJournalEntry.Paper.AddLeg> addLegs, double exitPrice) {
+        if (addLegs == null || addLegs.isEmpty()) {
+            return 0.0;
+        }
+        double total = 0.0;
+        for (PaperJournalEntry.Paper.AddLeg leg : addLegs) {
+            double addRisk = Math.abs(leg.entryPrice() - leg.stopAtAdd());
+            if (addRisk <= 0) {
+                continue;
+            }
+            total += leg.sizeFraction() * priceR(longDir, leg.entryPrice(), addRisk, exitPrice);
+        }
+        return total;
     }
 
     static double realizedR(boolean longDir, double entryPrice, double risk,

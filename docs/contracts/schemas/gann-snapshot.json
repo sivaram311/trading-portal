@@ -83,6 +83,19 @@
         "checkpoint": {
           "type": ["string", "null"],
           "description": "Nearest cfg.cycle_fractions label, e.g. CYC_1_4, or null. See README open question on exact label mapping."
+        },
+        "multi_day_origin": {
+          "oneOf": [{ "$ref": "#/$defs/multiDayOrigin" }, { "type": "null" }],
+          "description": "D1 swing origin used for the observe-only multi-day cycle overlay; null when D1 history is insufficient."
+        },
+        "multi_day_checkpoints": {
+          "type": "array",
+          "description": "Projected 3/7/14/21-trading-day checkpoints from multi_day_origin; empty when unavailable.",
+          "items": { "$ref": "#/$defs/multiDayCheckpoint" }
+        },
+        "multi_day_label": {
+          "type": ["string", "null"],
+          "description": "Active or near multi-day cycle label, or null when no checkpoint is near."
         }
       }
     },
@@ -121,7 +134,7 @@
           "KZ_LONDON_OPEN", "KZ_NY_OPEN", "KZ_NY_AFTERNOON",
           "VOL_SPIKE", "REV_CANDLE", "RSI_DIV",
           "PIVOT_NY_OPEN", "PIVOT_LONDON_OPEN", "PIVOT_PDH", "PIVOT_PDL", "PIVOT_PREV_CLOSE", "PIVOT_NY_HIGH", "PIVOT_NY_LOW",
-          "DATA_GAP"
+          "DATA_GAP", "MULTI_DAY_CYCLE_NEAR"
         ]
       }
     }
@@ -148,6 +161,27 @@
         "near_time": { "type": "boolean" },
         "near_price": { "type": "boolean" },
         "near_square": { "type": "boolean" }
+      }
+    },
+    "multiDayOrigin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["price", "date", "kind"],
+      "properties": {
+        "price": { "type": "number" },
+        "date": { "type": "string", "format": "date" },
+        "kind": { "type": "string", "description": "D1 swing-origin classification." }
+      }
+    },
+    "multiDayCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["day_count", "date", "active_today", "near"],
+      "properties": {
+        "day_count": { "type": "integer", "enum": [3, 7, 14, 21] },
+        "date": { "type": "string", "format": "date" },
+        "active_today": { "type": "boolean" },
+        "near": { "type": "boolean" }
       }
     }
   }

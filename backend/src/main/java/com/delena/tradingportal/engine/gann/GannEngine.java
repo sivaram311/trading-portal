@@ -16,10 +16,16 @@ import java.util.List;
 /**
  * Gann Cycle Engine (docs/algorithms/GANN-CYCLE-ENGINE.md). Pure compute over stored OHLC.
  * Emits {@link GannSnapshot}: 1x1 stretch/fan, Square-of-9 proximity, time-squaring milestones,
- * session cycle checkpoint, killzone, gann_bias hint, quality 0..5, reason codes.
+ * session cycle checkpoint, multi-day swing-cycle overlay (§7), killzone, gann_bias hint,
+ * quality 0..5, reason codes.
  *
  * <p>Sign conventions: So9 even levels use (2n-1) offsets (frozen per §5.1); So9Level.dist is the
  * signed distance (price - level). angle.deviation = px - equilibrium; positive = stretched up.
+ *
+ * <p>Multi-day cycles (§7, via {@link MultiDayCycleCalculator}) use D1 bars when supplied by the
+ * caller (see {@code barsD1} param) to project 3/7/14/21 trading-day checkpoints from the last D1
+ * swing. This is an observe-only HTF bias label: it never adjusts {@code quality}/score and this
+ * engine never places orders or auto-trades.
  */
 @Component
 public class GannEngine {
@@ -112,13 +118,13 @@ public class GannEngine {
         }
         var timeSquare = new GannSnapshot.TimeSquare(round(minutes), round(priceMove), milestones, anyNearSquare);
 
-        // --- Cycles ---
+        // --- Cycles (intraday session fraction + multi-day swing overlay) ---
         double frac = minutes / cfg.sessionLenMin();
         String checkpoint = nearestFraction(frac, cfg.cycleFractions());
         if (checkpoint != null) {
             reasons.add(checkpoint);
         }
-        var cycles = new GannSnapshot.Cycles(round(frac), checkpoint);
+        var cycles = buildCycles(round(frac), checkpoint, barsD1, asof, reasons);
 
         // --- Killzone + filters ---
         String killzone = NyTime.killzone(asof);
@@ -149,9 +155,54 @@ public class GannEngine {
         var angle = new GannSnapshot.Angle(0, 0, 0, 0, "balanced", false, new GannSnapshot.Fan(0, 0, 0));
         var so9 = new GannSnapshot.So9(List.of(), false, null);
         var ts = new GannSnapshot.TimeSquare(0, 0, List.of(), false);
-        var cycles = new GannSnapshot.Cycles(0, null);
+        var cycles = new GannSnapshot.Cycles(0, null, null, List.of(), null);
         return new GannSnapshot(SYMBOL, asof, pivot, angle, so9, ts, cycles, null, "neutral", 0, reasons,
                 new GannSnapshot.Filters(false, false, null));
+    }
+
+    /**
+     * Builds the {@link GannSnapshot.Cycles} block: intraday session fraction/checkpoint
+     * (unchanged) plus the multi-day swing-cycle overlay (§7, observe-only — HTF bias label
+     * only, never fed into {@code quality}/score and never auto-trades). Appends the {@code
+     * MULTI_DAY_CYCLE_NEAR} reason code (per docs/contracts/schemas/gann-snapshot.json reasons
+     * enum) when a projected 3/7/14/21 trading-day checkpoint from the last D1 swing is active or
+     * within tolerance of {@code asof}; the specific day-count(s) are available on {@code
+     * cycles.multiDayCheckpoints} / {@code cycles.multiDayLabel}. Falls back to empty multi-day
+     * fields when D1 bars are unavailable.
+     */
+    private static GannSnapshot.Cycles buildCycles(double frac, String checkpoint, List<OhlcBar> barsD1,
+                                                     Instant asof, List<String> reasons) {
+        if (barsD1 == null || barsD1.isEmpty() || asof == null) {
+            return new GannSnapshot.Cycles(frac, checkpoint, null, List.of(), null);
+        }
+        // Observe-only HTF swing: deepest D1 low at/before asof (research-tier; not an order trigger).
+        OhlcBar swing = barsD1.stream()
+                .filter(b -> b.ts() != null && !b.ts().isAfter(asof))
+                .min(Comparator.comparingDouble(OhlcBar::low))
+                .orElse(null);
+        if (swing == null) {
+            return new GannSnapshot.Cycles(frac, checkpoint, null, List.of(), null);
+        }
+        MultiDayCycleCalculator.Result multiDay =
+                MultiDayCycleCalculator.compute(barsD1, swing.ts(), swing.low(), asof);
+        var origin = new GannSnapshot.MultiDayOrigin(round(multiDay.pivotPrice()),
+                multiDay.pivotDate(), "SWING_LOW");
+        List<GannSnapshot.MultiDayCheckpoint> checkpoints = multiDay.checkpoints().stream()
+                .map(c -> new GannSnapshot.MultiDayCheckpoint(
+                        c.days(), c.targetDate(), c.daysRemaining() == 0, c.near()))
+                .toList();
+        boolean anyNear = checkpoints.stream().anyMatch(c -> c.near() || c.activeToday());
+        if (anyNear) {
+            reasons.add("MULTI_DAY_CYCLE_NEAR");
+        }
+        String label = null;
+        if (multiDay.activeCycleLabel() != null && multiDay.activeCycleLabel().startsWith("CYCLE_")
+                && multiDay.activeCycleLabel().endsWith("D")) {
+            String days = multiDay.activeCycleLabel().substring("CYCLE_".length(),
+                    multiDay.activeCycleLabel().length() - 1);
+            label = "MULTI_DAY_" + days;
+        }
+        return new GannSnapshot.Cycles(frac, checkpoint, origin, checkpoints, label);
     }
 
     private record Pivot(String source, double price, Instant originNy) {

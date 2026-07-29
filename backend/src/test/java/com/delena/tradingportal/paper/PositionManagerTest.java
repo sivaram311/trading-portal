@@ -3,6 +3,9 @@ package com.delena.tradingportal.paper;
 import com.delena.tradingportal.engine.gann.GannConfig;
 import com.delena.tradingportal.engine.ict.IctConfig;
 import com.delena.tradingportal.engine.style.StyleProfile;
+import com.delena.tradingportal.engine.style.StyleRegistry;
+import com.delena.tradingportal.engine.style.TradingStyle;
+import com.delena.tradingportal.model.ConfluenceDecision;
 import com.delena.tradingportal.model.Entry;
 import com.delena.tradingportal.model.OhlcBar;
 import com.delena.tradingportal.model.PaperJournalEntry;
@@ -23,15 +26,21 @@ class PositionManagerTest {
 
     private PositionManager manager;
     private StyleProfile dayStyle;
+    private StyleProfile positionalStyle;
     private final Instant t0 = Instant.parse("2026-07-15T12:00:00Z");
 
     @BeforeEach
     void setUp() {
         manager = new PositionManager();
+        // Match StyleRegistry DAY: riskPct=0.625, maxLegs=2 (ADD_LEG gated by risk cap on paper).
         dayStyle = new StyleProfile(
                 IctConfig.defaults(), GannConfig.defaults(),
-                0.625, 1, Duration.ofHours(8),
+                0.625, 2, Duration.ofHours(8),
                 false, 1.0, 0.45, 32.0);
+        positionalStyle = new StyleProfile(
+                IctConfig.defaults(), GannConfig.defaults(),
+                0.875, 3, Duration.ofDays(5),
+                false, 1.0, 0.40, 40.0);
     }
 
     @Test
@@ -106,6 +115,94 @@ class PositionManagerTest {
         assertEquals(0.4, result.entry().paper().rMultiple());
     }
 
+    @Test
+    void tryAddLegAddsWhenPolicyAllows() {
+        PaperJournalEntry open = longOpen(2000.0, 1990.0, List.of(2020.0));
+        OhlcBar bar = bar(t0.plusSeconds(900), 2005, 2010, 2004, 2008);
+        ConfluenceDecision signal = confluenceSignal("XAUUSD", "long", "A+");
+
+        PositionManager.AddLegResult result = manager.tryAddLeg(open, signal, bar, positionalStyle);
+
+        assertTrue(result.added());
+        assertEquals("OK", result.reason());
+        assertEquals(2, result.entry().paper().legCount());
+        assertEquals(1, result.entry().paper().addLegs().size());
+        assertEquals(2008.0, result.entry().paper().addLegs().get(0).entryPrice());
+        assertEquals(1990.0, result.entry().paper().addLegs().get(0).stopAtAdd());
+        assertEquals(0.6, result.entry().paper().addLegs().get(0).sizeFraction());
+        // Status/entryPrice/stop of the managed position are untouched by the add.
+        assertEquals("PAPER_OPEN", result.entry().status());
+        assertEquals(2000.0, result.entry().paper().entryPrice());
+    }
+
+    @Test
+    void tryAddLegRejectsBelowUnrealizedRThreshold() {
+        PaperJournalEntry open = longOpen(2000.0, 1990.0, List.of(2020.0));
+        OhlcBar bar = bar(t0.plusSeconds(900), 2003, 2004, 2002, 2003);
+        ConfluenceDecision signal = confluenceSignal("XAUUSD", "long", "A+");
+
+        PositionManager.AddLegResult result = manager.tryAddLeg(open, signal, bar, positionalStyle);
+
+        assertFalse(result.added());
+        assertEquals("UNREALIZED_R_BELOW_THRESHOLD", result.reason());
+        assertEquals(open, result.entry());
+    }
+
+    @Test
+    void tryAddLegRejectsOnDayStyleRiskCap() {
+        // Real DAY profile (maxLegs=2) so the rejection exercises the risk cap, not maxLegs.
+        StyleProfile realDayStyle = new StyleRegistry().get(TradingStyle.DAY);
+        PaperJournalEntry open = longOpen(2000.0, 1990.0, List.of(2020.0));
+        OhlcBar bar = bar(t0.plusSeconds(900), 2005, 2010, 2004, 2008);
+        ConfluenceDecision signal = confluenceSignal("XAUUSD", "long", "A+");
+
+        PositionManager.AddLegResult result = manager.tryAddLeg(open, signal, bar, realDayStyle);
+
+        assertFalse(result.added());
+        assertEquals("RISK_CAP_EXCEEDED", result.reason());
+    }
+
+    @Test
+    void tryAddLegRejectsWhenNotOpen() {
+        PaperJournalEntry open = longOpen(2000.0, 1990.0, List.of(2020.0));
+        PaperJournalEntry closed = new PaperJournalEntry(open.id(), open.decisionId(), open.symbol(),
+                open.sessionDate(), "PAPER_CLOSED", open.mode(), open.direction(), open.grade(), open.score(),
+                open.reasons(), open.weightsVersion(), open.entry(), open.stop(), open.targets(),
+                open.invalidIf(), open.automation(), open.risk(), open.detectedAt(), open.actionedAt(),
+                open.actionedBy(), open.actionNote(), open.paper());
+        OhlcBar bar = bar(t0.plusSeconds(900), 2005, 2010, 2004, 2008);
+        ConfluenceDecision signal = confluenceSignal("XAUUSD", "long", "A+");
+
+        PositionManager.AddLegResult result = manager.tryAddLeg(closed, signal, bar, positionalStyle);
+
+        assertFalse(result.added());
+        assertEquals("NOT_OPEN", result.reason());
+    }
+
+    @Test
+    void closeBlendsAddedLegRIntoRealizedRMultiple() {
+        PaperJournalEntry open = longOpen(2000.0, 1990.0, List.of(2020.0));
+        OhlcBar addBar = bar(t0.plusSeconds(900), 2005, 2010, 2004, 2008);
+        ConfluenceDecision signal = confluenceSignal("XAUUSD", "long", "A+");
+        PositionManager.AddLegResult added = manager.tryAddLeg(open, signal, addBar, positionalStyle);
+        assertTrue(added.added());
+
+        PositionManager.BarResult closed = manager.closeAt(added.entry(), t0.plusSeconds(1800), 2020.0, "MANUAL");
+
+        assertTrue(closed.closed());
+        // Original leg: full size, R = (2020-2000)/10 = 2.0.
+        // Added leg: 0.6 size, R = (2020-2008)/(2008-1990) = 12/18 = 0.6667 -> weighted 0.4.
+        assertEquals(2.4, closed.entry().paper().rMultiple(), 0.001);
+        assertEquals(1, closed.entry().paper().addLegs().size());
+    }
+
+    private static ConfluenceDecision confluenceSignal(String symbol, String direction, String grade) {
+        return new ConfluenceDecision("dec-" + UUID.randomUUID(), symbol, Instant.parse("2026-07-15T12:15:00Z"),
+                "R", direction, grade, 8.0, "agree", List.of(), new Entry("OB", 2003.0, 2007.0), 1995.0,
+                List.of(2030.0), List.of(), new ConfluenceDecision.Engines("ict-ref", "gann-ref"),
+                "confirm", "v1");
+    }
+
     private PaperJournalEntry longOpen(double entry, double stop, List<Double> targets) {
         var p = paper(null, entry, stop, 1.0, false, false);
         return new PaperJournalEntry(
@@ -122,7 +219,7 @@ class PositionManagerTest {
                                                    double remaining, boolean beActive, boolean t1Hit) {
         Instant opened = open != null && open.paper() != null ? open.paper().openedAt() : Instant.parse("2026-07-15T12:00:00Z");
         return new PaperJournalEntry.Paper(opened, null, entry, null, null, null, null, null,
-                stop, remaining, beActive, t1Hit);
+                stop, remaining, beActive, t1Hit, 1, List.of());
     }
 
     private static PaperJournalEntry openWithPaper(PaperJournalEntry entry, PaperJournalEntry.Paper paper) {

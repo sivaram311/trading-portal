@@ -4,6 +4,8 @@ Append newest at top.
 
 | When (IST) | Who | Action | Result |
 |------------|-----|--------|--------|
+| 2026-07-30 | lead (cursor) | Close pending-feature wave: fixed `GannEngine` multi-day label (`MULTI_DAY_N`), analytics 4-d.p. test expectations, DAY `maxLegs=2` in PositionManagerTest; `mvn test` **124/0 green**; `ng build` production **green**; FeatureInventory + FEATURE-VALIDATION + OPS honesty → IMPLEMENTED for mitigation / multi-day / ADD_LEG / style UI / analytics / candles. P5 still fail-closed. | **Wave done (uncommitted).** Cloudflare rules not pasted — awaiting user. |
+| 2026-07-30 | ops-honesty (cursor) | Mid-wave honesty pass (6 failing tests at that snapshot) | superseded by closeout above |
 | 2026-07-17 ~11:40 | lead | Feature validate + V2 migrate + surface APIs/UI; E2E 12/12; F/G 0.3.2 | Reviewer GO |
 | 2026-07-17 ~11:05 | lead+promote | Q1+Q2 `v0.3.1` (P5 fail-closed); DEV E2E 9/9; F→G deploy | Reviewer GO; push+tag |
 | 2026-07-17 ~03:15 | lead+H | Implement leftovers: Breaker/IFVG, WF+MC backtest, Angular overlays; mvn+npm green | Reviewer GO; push |
