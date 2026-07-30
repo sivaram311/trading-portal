@@ -1,0 +1,13 @@
+{
+  "style": "DAY",
+  "bars_processed": 449,
+  "trade_count": 0,
+  "win_rate": 0.0,
+  "profit_factor": 0.0,
+  "expectancy_r": 0.0,
+  "max_drawdown_pct": 0.0,
+  "avg_win_r": 0.0,
+  "avg_loss_r": 0.0,
+  "total_r": 0.0,
+  "m15_bars_used": 500
+}

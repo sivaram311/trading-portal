@@ -1,0 +1,5 @@
+style,bars_processed,trade_count,win_rate,profit_factor,expectancy_r,max_drawdown_pct,avg_win_r,avg_loss_r,total_r
+POSITIONAL,949,1,0.0000,0.0000,-0.1500,0.0000,0.0000,-0.1500,-0.1500
+
+entry_time,exit_time,direction,mode,grade,entry_price,exit_price,r_multiple,exit_reason
+2026-07-22T05:15:00Z,2026-07-27T05:30:00Z,long,T,A,4122.78,4096.49,-0.1500,TIME

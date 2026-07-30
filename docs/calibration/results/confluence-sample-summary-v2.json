@@ -1,0 +1,126 @@
+{
+  "m15_bars": 5000,
+  "samples": 99,
+  "grades": {
+    "F": 70,
+    "B": 20,
+    "C": 9
+  },
+  "modes": {
+    "NONE": 82,
+    "T": 17
+  },
+  "automations": {
+    "deny": 99
+  },
+  "directions": {
+    "flat": 70,
+    "long": 24,
+    "short": 5
+  },
+  "confirmable_proxy_A_or_Aplus": 0,
+  "top_reasons": [
+    [
+      "ICT_PD_PREMIUM",
+      99
+    ],
+    [
+      "ICT_DISP_OK",
+      77
+    ],
+    [
+      "GANN_DATA_GAP",
+      66
+    ],
+    [
+      "NONE",
+      66
+    ],
+    [
+      "GANN_PIVOT_NY_OPEN",
+      33
+    ],
+    [
+      "GANN_ANG_OVER_DOWN",
+      31
+    ],
+    [
+      "GANN_ANG_ALERT",
+      31
+    ],
+    [
+      "ICT_SWEEP_EQH",
+      29
+    ],
+    [
+      "ICT_SWEEP_AHH",
+      25
+    ],
+    [
+      "SOFT",
+      24
+    ],
+    [
+      "ICT_SWEEP_ALH",
+      22
+    ],
+    [
+      "ICT_KZ_NY_OPEN",
+      15
+    ],
+    [
+      "ICT_KZ_LONDON_OPEN",
+      12
+    ],
+    [
+      "ICT_KZ_NY_AFTERNOON",
+      10
+    ],
+    [
+      "ICT_SWEEP_PDH",
+      9
+    ],
+    [
+      "GANN_TSQ_NEAR",
+      9
+    ],
+    [
+      "ICT_SWEEP_PDL",
+      8
+    ],
+    [
+      "GANN_REV_CANDLE",
+      7
+    ],
+    [
+      "GANN_TSQ_45",
+      6
+    ],
+    [
+      "GANN_VOL_SPIKE",
+      6
+    ],
+    [
+      "GANN_KZ_LONDON_OPEN",
+      5
+    ],
+    [
+      "ALIGN_LONG",
+      5
+    ],
+    [
+      "GANN_CYC_1_2",
+      5
+    ],
+    [
+      "ICT_SWEEP_ROUND_5",
+      4
+    ],
+    [
+      "GANN_KZ_NY_OPEN",
+      4
+    ]
+  ],
+  "first_ts": "2026-05-14T09:30:00Z",
+  "last_ts": "2026-07-30T05:15:00Z"
+}

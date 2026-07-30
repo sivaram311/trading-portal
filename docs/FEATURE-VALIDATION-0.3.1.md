@@ -44,5 +44,5 @@
 
 - Open calibration tasks (ATR time_scale, So9 steps, WF weight sweep) — docs/scripts only; defaults unchanged.
 - P5 micro-live arming — HOLD until `GO micro-live P5 on DEV only`.
-- **Paper backtest baseline (2026-07-30):** [`docs/calibration/BACKTEST-REPORT-2026-07-30.md`](./calibration/BACKTEST-REPORT-2026-07-30.md) — 12/12 runs **0 trades** on M15 Jul 9–17 window (no A/A+); MT5 backfill blocked (IPC timeout). Treat `/api/ops/status.features` as the honesty bar after deploy.
-- FEATURE-VALIDATION header: wave is **pushed** on `main` (DEV); F/G still `v0.3.2`.
+- **Paper backtest baseline (2026-07-30):** [`BACKTEST-REPORT-2026-07-30.md`](./calibration/BACKTEST-REPORT-2026-07-30.md) (v1, 0 trades) · [`BACKTEST-REPORT-2026-07-30-v2.md`](./calibration/BACKTEST-REPORT-2026-07-30-v2.md) (MT5 5k M15; **3 fragile Mode-T fills** at 1000 bars — no edge claim).
+- FEATURE-VALIDATION: wave is **pushed** on `main` (DEV); F/G still `v0.3.2`.

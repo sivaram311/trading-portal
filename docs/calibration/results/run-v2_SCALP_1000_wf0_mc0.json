@@ -1,0 +1,13 @@
+{
+  "style": "SCALP",
+  "bars_processed": 949,
+  "trade_count": 1,
+  "win_rate": 1.0,
+  "profit_factor": 999.99,
+  "expectancy_r": 0.09,
+  "max_drawdown_pct": 0.0,
+  "avg_win_r": 0.09,
+  "avg_loss_r": 0.0,
+  "total_r": 0.09,
+  "m15_bars_used": 1000
+}

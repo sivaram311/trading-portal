@@ -1,0 +1,13 @@
+tag,style,maxBars,bars_processed,trade_count,win_rate,profit_factor,expectancy_r,max_drawdown_pct,avg_win_r,avg_loss_r,total_r,walkForward,monteCarlo,error
+v2_DAY_500_wf0_mc0,DAY,500,449,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_DAY_1000_wf0_mc0,DAY,1000,949,1,0.0,0.0,-0.03,0.0,0.0,-0.03,-0.03,False,False,
+v2_DAY_2000_wf0_mc0,DAY,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_DAY_2000_wf1_mc1,DAY,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,
+v2_POSITIONAL_500_wf0_mc0,POSITIONAL,500,449,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_POSITIONAL_1000_wf0_mc0,POSITIONAL,1000,949,1,0.0,0.0,-0.15,0.0,0.0,-0.15,-0.15,False,False,
+v2_POSITIONAL_2000_wf0_mc0,POSITIONAL,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_POSITIONAL_2000_wf1_mc1,POSITIONAL,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,
+v2_SCALP_500_wf0_mc0,SCALP,500,449,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_SCALP_1000_wf0_mc0,SCALP,1000,949,1,1.0,999.99,0.09,0.0,0.09,0.0,0.09,False,False,
+v2_SCALP_2000_wf0_mc0,SCALP,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,False,False,
+v2_SCALP_2000_wf1_mc1,SCALP,2000,1949,0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,True,True,
