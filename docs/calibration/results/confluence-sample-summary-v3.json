@@ -1,0 +1,107 @@
+{
+    "m15_bars":  5000,
+    "samples":  88,
+    "grades":  {
+                   "C":  22,
+                   "A":  2,
+                   "F":  13,
+                   "B":  51
+               },
+    "modes":  {
+                  "C":  1,
+                  "T":  25,
+                  "NONE":  62
+              },
+    "automations":  {
+                        "deny":  88
+                    },
+    "directions":  {
+                       "short":  24,
+                       "long":  51,
+                       "flat":  13
+                   },
+    "gann_data_gap_count":  0,
+    "confirmable_proxy_A_or_Aplus":  2,
+    "top_reasons":  [
+                        [
+                            "GANN_PIVOT_NY_OPEN",
+                            88
+                        ],
+                        [
+                            "ICT_PD_PREMIUM",
+                            88
+                        ],
+                        [
+                            "GANN_ANG_OVER_DOWN",
+                            87
+                        ],
+                        [
+                            "GANN_ANG_ALERT",
+                            87
+                        ],
+                        [
+                            "ICT_DISP_OK",
+                            73
+                        ],
+                        [
+                            "SOFT",
+                            68
+                        ],
+                        [
+                            "ICT_SWEEP_EQH",
+                            28
+                        ],
+                        [
+                            "ICT_SWEEP_AHH",
+                            27
+                        ],
+                        [
+                            "GANN_REV_CANDLE",
+                            21
+                        ],
+                        [
+                            "ICT_SWEEP_ALH",
+                            21
+                        ],
+                        [
+                            "GANN_SO9_FINE",
+                            14
+                        ],
+                        [
+                            "CONFLICT",
+                            13
+                        ],
+                        [
+                            "GANN_KZ_NY_AFTERNOON",
+                            12
+                        ],
+                        [
+                            "ICT_KZ_NY_AFTERNOON",
+                            12
+                        ],
+                        [
+                            "GANN_KZ_LONDON_OPEN",
+                            9
+                        ],
+                        [
+                            "ICT_KZ_LONDON_OPEN",
+                            9
+                        ],
+                        [
+                            "ICT_KZ_NY_OPEN",
+                            7
+                        ],
+                        [
+                            "ALIGN_LONG",
+                            7
+                        ],
+                        [
+                            "GANN_KZ_NY_OPEN",
+                            7
+                        ],
+                        [
+                            "GANN_TSQ_NEAR",
+                            7
+                        ]
+                    ]
+}

@@ -1,0 +1,1630 @@
+[
+    {
+        "asof":  "2026-05-14T22:30:00Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_BOS_BEAR",
+                        "ICT_OB_ACTIVE",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-15T17:18:49Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_3_4",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-16T12:07:39Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_REV_CANDLE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-17T06:56:28Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_REV_CANDLE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-18T01:45:18Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ROUND_5",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_45",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_8",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-18T20:34:07Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-19T15:22:57Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-20T10:11:47Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_PDL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-21T05:00:36Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_8",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-21T23:49:26Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_PDH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-22T18:38:15Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_7_8",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-23T13:27:05Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-24T08:15:55Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-25T03:04:44Z",
+        "grade":  "C",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_4",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-25T21:53:34Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-26T16:42:23Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-27T11:31:13Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_PDL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-28T06:20:03Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "ICT_MSS_BEAR",
+                        "ICT_FVG_ACTIVE",
+                        "ICT_OTE_ACTIVE",
+                        "ICT_HTF_CONFLICT",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_CYC_1_4",
+                        "GANN_KZ_LONDON_OPEN",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-29T01:08:52Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-29T19:57:42Z",
+        "grade":  "A",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_45",
+                        "GANN_TSQ_NEAR",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "GANN_REV_CANDLE",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-05-30T14:46:31Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-05-31T09:35:21Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-01T04:24:11Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_45",
+                        "GANN_TSQ_90",
+                        "GANN_TSQ_180",
+                        "GANN_TSQ_NEAR",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-06-01T23:13:00Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-02T18:01:50Z",
+        "grade":  "A",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_CYC_3_4",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "GANN_REV_CANDLE",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-06-03T12:50:39Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_4",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-04T07:39:29Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_CYC_1_3",
+                        "GANN_KZ_LONDON_OPEN",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-06-05T02:28:18Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-05T21:17:08Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_REV_CANDLE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-06T16:05:58Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ROUND_5",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-07T10:54:47Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ROUND_5",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-08T05:43:37Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_90",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_8",
+                        "GANN_REV_CANDLE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-09T00:32:26Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-09T19:21:16Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_CYC_7_8",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "GANN_VOL_SPIKE",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-10T14:10:06Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_180",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_3",
+                        "GANN_VOL_SPIKE",
+                        "GANN_REV_CANDLE",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-06-11T08:58:55Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ROUND_5",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_KZ_LONDON_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-12T03:47:45Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_PDH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-12T22:36:34Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-13T17:25:24Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-14T12:14:14Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-15T07:03:03Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_TSQ_180",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_3",
+                        "GANN_KZ_LONDON_OPEN",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-16T01:51:53Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-16T20:40:42Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-17T15:29:32Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-18T10:18:22Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_3_4",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-19T05:07:11Z",
+        "grade":  "C",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_8",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-19T23:56:01Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-20T18:44:50Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-21T13:33:40Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-22T08:22:30Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_KZ_LONDON_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-23T03:11:19Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_VOL_SPIKE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-23T22:00:09Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-24T16:48:58Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_VOL_SPIKE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-25T11:37:48Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-26T06:26:37Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_4",
+                        "GANN_KZ_LONDON_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-27T01:15:27Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-27T20:04:17Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-28T14:53:06Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-29T09:41:56Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_PDL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-30T04:30:45Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_VOL_SPIKE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-06-30T23:19:35Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-01T18:08:25Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_3_4",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-02T12:57:14Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_4",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-03T07:46:04Z",
+        "grade":  "B",
+        "mode":  "C",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_KZ_LONDON_OPEN",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-07-04T02:34:53Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-04T21:23:43Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-05T16:12:33Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-06T11:01:22Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_BALANCED",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-07T05:50:12Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_4",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-08T00:39:01Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-08T19:27:51Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_AFTERNOON",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_KZ_NY_AFTERNOON",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-09T14:16:41Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_3",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-10T09:05:30Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-11T03:54:20Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-11T22:43:09Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-12T17:31:59Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-13T12:20:48Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_PDL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_8",
+                        "GANN_KZ_NY_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-14T07:09:38Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_180",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_3",
+                        "GANN_KZ_LONDON_OPEN",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-07-15T01:58:28Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-15T20:47:17Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-16T15:36:07Z",
+        "grade":  "C",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-17T10:24:56Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_3_4",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-18T05:13:46Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-19T00:02:36Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-19T18:51:25Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-20T13:40:15Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_NY_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_3",
+                        "GANN_KZ_NY_OPEN",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-21T08:29:04Z",
+        "grade":  "F",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "flat",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_SO9_FINE",
+                        "GANN_CYC_1_2",
+                        "GANN_KZ_LONDON_OPEN",
+                        "CONFLICT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-22T03:17:54Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_VOL_SPIKE",
+                        "SOFT"
+                    ]
+    }
+]

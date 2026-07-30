@@ -1,0 +1,217 @@
+[
+    {
+        "asof":  "2026-07-22T22:00:00Z",
+        "grade":  "B",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "short",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-23T15:06:49Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-24T08:13:38Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_KZ_LONDON_OPEN",
+                        "GANN_REV_CANDLE",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-25T01:20:27Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-25T18:27:16Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-26T11:34:05Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-27T04:40:54Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_45",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_8",
+                        "ALIGN_LONG"
+                    ]
+    },
+    {
+        "asof":  "2026-07-27T21:47:43Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_ALH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-28T14:54:32Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_EQH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-29T08:01:21Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_KZ_LONDON_OPEN",
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_PDL",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_CYC_1_2",
+                        "GANN_KZ_LONDON_OPEN",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-30T01:08:10Z",
+        "grade":  "C",
+        "mode":  "NONE",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_DISP_OK",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "SOFT"
+                    ]
+    },
+    {
+        "asof":  "2026-07-30T18:15:00Z",
+        "grade":  "B",
+        "mode":  "T",
+        "automation":  "deny",
+        "direction":  "long",
+        "gann_data_gap":  false,
+        "reasons":  [
+                        "ICT_PD_PREMIUM",
+                        "ICT_SWEEP_AHH",
+                        "GANN_PIVOT_NY_OPEN",
+                        "GANN_ANG_OVER_DOWN",
+                        "GANN_ANG_ALERT",
+                        "GANN_TSQ_90",
+                        "GANN_TSQ_NEAR",
+                        "GANN_CYC_1_8",
+                        "ALIGN_LONG"
+                    ]
+    }
+]

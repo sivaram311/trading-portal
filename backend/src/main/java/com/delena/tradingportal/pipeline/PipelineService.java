@@ -122,7 +122,8 @@ public class PipelineService {
         boolean newsVeto = newsCalendar.isVeto(effectiveAsof);
         StyleProfile style = styleRegistry.get(props.getStyle());
         IctSnapshot ict = ictEngine.compute(h4, h1, m15, m5, effectiveAsof, style.ict());
-        GannSnapshot gann = gannEngine.compute(m5, d1, effectiveAsof, style.gann(), "NY_OPEN");
+        List<OhlcBar> gannBars = GannEngine.preferEntryBars(m5, m15);
+        GannSnapshot gann = gannEngine.compute(gannBars, d1, effectiveAsof, style.gann(), "NY_OPEN");
         var dxyM15 = market.barsUpTo("DXY", "M15", effectiveAsof);
         var dxyH1 = market.barsUpTo("DXY", "H1", effectiveAsof);
         var smt = smtDetector.detect(m15, h1, dxyM15, dxyH1);
@@ -133,7 +134,7 @@ public class PipelineService {
         Instant lastSameDirTs = decisionRepo.findTopByDirectionOrderByTsDesc(decision.direction())
                 .map(ConfluenceDecisionEntity::getTs)
                 .orElse(null);
-        var qualityCtx = marketQualityGate.contextFromBars(m5, effectiveAsof, decision.direction(),
+        var qualityCtx = marketQualityGate.contextFromBars(gannBars, effectiveAsof, decision.direction(),
                 lastSameDirTs, Optional.of(style.maxSpreadPts()), props.getStyle());
         RiskVerdict risk = MarketQualityGate.mergeIntoVerdict(
                 riskGate.verdict(decision, openPositions, 0.0),

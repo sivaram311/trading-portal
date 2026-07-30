@@ -12,6 +12,10 @@ a human signs off, and the change is made deliberately in code (see
 No live trading is implied or required by anything in this file. `trading.exec.live-enabled`
 stays `false` throughout calibration.
 
+**Latest evidence (2026-07-30 v3):** [`BACKTEST-REPORT-2026-07-30-v3.md`](./BACKTEST-REPORT-2026-07-30-v3.md) —
+`GANN_DATA_GAP` fixed; Mode T watch-only enforced; rolling windows still show **no claimable edge**
+(one path-dependent Mode C loser). Defaults unchanged.
+
 ---
 
 ## How to use this checklist

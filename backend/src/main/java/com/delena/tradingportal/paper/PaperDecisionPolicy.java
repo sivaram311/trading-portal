@@ -6,8 +6,10 @@ import com.delena.tradingportal.model.RiskVerdict;
 /**
  * Pure confirmability guard enforcing the Q1 gate: "CONFLICT / risk deny never creates paper
  * entries". A decision is confirmable into a PAPER_OPEN position only when the confluence layer
- * did not deny it, it is an actionable mode (not NONE), it is not grade F, and the Risk Gate
- * verdict is ok. Kept side-effect free so it is directly unit-testable.
+ * did not deny it, it is an actionable mode ({@code R} or {@code C} — not {@code NONE} or
+ * watch-only {@code T}), it is not grade F, and the Risk Gate verdict is ok.
+ * Mode T is alert/watch per CONFLUENCE-FRAMEWORK § Mode T ("not auto-entry alone").
+ * Kept side-effect free so it is directly unit-testable.
  */
 public final class PaperDecisionPolicy {
 
@@ -25,7 +27,7 @@ public final class PaperDecisionPolicy {
         if ("deny".equals(automation)) {
             return false;
         }
-        if (mode == null || "NONE".equals(mode)) {
+        if (mode == null || "NONE".equals(mode) || "T".equals(mode)) {
             return false;
         }
         if ("F".equals(grade)) {

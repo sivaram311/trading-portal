@@ -32,6 +32,20 @@ public class GannEngine {
 
     private static final String SYMBOL = "XAUUSD";
     private static final int N_FINE = 4;
+    /** Minimum bars after as-of filter before Gann can compute (ATR + pivot need a short window). */
+    public static final int MIN_BARS = 3;
+
+    /**
+     * Prefer M5 when it has enough history; otherwise fall back to M15.
+     * Pipeline historically passed empty M5 into {@link #compute} whenever M15 existed but M5
+     * coverage had not started yet, which produced spurious {@code DATA_GAP} on replay census.
+     */
+    public static List<OhlcBar> preferEntryBars(List<OhlcBar> m5, List<OhlcBar> m15) {
+        if (m5 != null && m5.size() >= MIN_BARS) {
+            return m5;
+        }
+        return m15 != null ? m15 : List.of();
+    }
 
     public GannSnapshot compute(List<OhlcBar> bars, List<OhlcBar> barsD1, Instant asof,
                                 GannConfig cfg, String pivotSource) {
@@ -39,7 +53,7 @@ public class GannEngine {
             return empty(asof, pivotSource, List.of("DATA_GAP"));
         }
         List<OhlcBar> window = bars.stream().filter(b -> !b.ts().isAfter(asof)).toList();
-        if (window.size() < 3) {
+        if (window.size() < MIN_BARS) {
             return empty(asof, pivotSource, List.of("DATA_GAP"));
         }
 

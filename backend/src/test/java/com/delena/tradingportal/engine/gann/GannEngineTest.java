@@ -57,6 +57,22 @@ class GannEngineTest {
         assertEquals(withoutMultiDay.gannBias(), withMultiDay.gannBias());
     }
 
+    @Test
+    void preferEntryBarsFallsBackToM15WhenM5TooShort() {
+        List<OhlcBar> m15 = m5Window(); // reuse 5-bar fixture as "M15"
+        List<OhlcBar> m5Short = m15.subList(0, 2);
+        assertEquals(m15, GannEngine.preferEntryBars(m5Short, m15));
+        assertEquals(m15, GannEngine.preferEntryBars(List.of(), m15));
+        assertEquals(m5Window(), GannEngine.preferEntryBars(m5Window(), m15));
+    }
+
+    @Test
+    void emptyBarsYieldDataGap() {
+        GannSnapshot snap = engine.compute(List.of(), null, ASOF, GannConfig.defaults(), "NY_OPEN");
+        assertTrue(snap.reasons().contains("DATA_GAP"));
+        assertEquals(0, snap.quality());
+    }
+
     // ------------------------------------------------------------------ fixtures
 
     private static List<OhlcBar> m5Window() {

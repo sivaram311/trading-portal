@@ -32,7 +32,8 @@ import java.util.Map;
 public class BacktestController {
 
     private static final int DEFAULT_MAX_M15 = 400;
-    private static final int HARD_MAX_M15 = 2000;
+    /** Paper-only cap; raised so rolling studies can use full DEV M15 store (~5k). */
+    private static final int HARD_MAX_M15 = 5000;
 
     private final Backtester backtester;
     private final MarketDataService market;
@@ -61,16 +62,18 @@ public class BacktestController {
     @PostMapping("/run")
     public Map<String, Object> run(
             @RequestParam(value = "maxBars", required = false) Integer maxBars,
+            @RequestParam(value = "endBarsAgo", required = false) Integer endBarsAgo,
             @RequestParam(value = "style", required = false) String styleParam,
             @RequestParam(value = "walkForward", defaultValue = "false") boolean walkForward,
             @RequestParam(value = "monteCarlo", defaultValue = "false") boolean monteCarlo,
             @RequestParam(value = "mcIterations", defaultValue = "200") int mcIterations) {
         TradingStyle style = parseStyle(styleParam);
         int cap = maxBars == null ? DEFAULT_MAX_M15 : Math.min(HARD_MAX_M15, Math.max(80, maxBars));
-        BacktestHistory history = loadHistory(cap);
+        int endAgo = endBarsAgo == null ? 0 : Math.max(0, endBarsAgo);
+        BacktestHistory history = loadHistory(cap, endAgo);
         if (history.m15().size() < 80) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    "Need >=80 M15 bars in store; have " + history.m15().size());
+                    "Need >=80 M15 bars in window; have " + history.m15().size());
         }
         BacktestConfig config = BacktestConfig.defaults(style);
         BacktestResult result = backtester.run(history, config);
@@ -88,6 +91,11 @@ public class BacktestController {
         out.put("total_r", result.totalR());
         out.put("trades_csv", result.toCsv());
         out.put("m15_bars_used", history.m15().size());
+        out.put("end_bars_ago", endAgo);
+        if (!history.m15().isEmpty()) {
+            out.put("window_from", history.m15().get(0).ts().toString());
+            out.put("window_to", history.m15().get(history.m15().size() - 1).ts().toString());
+        }
 
         if (walkForward) {
             WalkForwardResult wf = backtester.walkForward(history, config, WalkForwardConfig.defaults());
@@ -120,14 +128,21 @@ public class BacktestController {
         }
     }
 
-    private BacktestHistory loadHistory(int maxM15) {
+    /**
+     * @param maxM15 window length
+     * @param endBarsAgo 0 = window ends at newest bar; N = end N bars earlier (rolling studies)
+     */
+    private BacktestHistory loadHistory(int maxM15, int endBarsAgo) {
         List<OhlcBar> m15All = market.bars("M15");
-        List<OhlcBar> m15 = m15All.size() <= maxM15
-                ? m15All
-                : m15All.subList(m15All.size() - maxM15, m15All.size());
-        if (m15.isEmpty()) {
+        if (m15All.isEmpty()) {
             return BacktestHistory.of(List.of(), List.of(), List.of());
         }
+        int endExclusive = Math.max(0, m15All.size() - endBarsAgo);
+        int start = Math.max(0, endExclusive - maxM15);
+        if (endExclusive <= start) {
+            return BacktestHistory.of(List.of(), List.of(), List.of());
+        }
+        List<OhlcBar> m15 = m15All.subList(start, endExclusive);
         var from = m15.get(0).ts();
         var to = m15.get(m15.size() - 1).ts();
         List<OhlcBar> m5 = market.bars("M5", from, to);

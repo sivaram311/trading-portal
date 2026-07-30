@@ -161,7 +161,7 @@ public class ConfluenceEngine {
         }
 
         // --- Automation policy ---
-        String automation = automation(grade, aligned);
+        String automation = automation(grade, aligned, mode);
 
         return new ConfluenceDecision(UUID.randomUUID().toString(), "XAUUSD", ts, mode, direction,
                 grade, round(score), agreement, new ArrayList<>(reasons), entry, round(stop),
@@ -253,11 +253,15 @@ public class ConfluenceEngine {
         return ORDER.indexOf(a) > ORDER.indexOf(b);
     }
 
-    private static String automation(String grade, boolean aligned) {
+    private static String automation(String grade, boolean aligned, String mode) {
         if (!aligned) {
             return "deny";
         }
-        // MVP is confirm-always (auto paper fill flag OFF): A/A+ are operator-confirmable.
+        // Mode T is watch/alert only (theory): never operator-confirmable alone.
+        if ("T".equals(mode) || "NONE".equals(mode)) {
+            return "deny";
+        }
+        // MVP is confirm-always (auto paper fill flag OFF): A/A+ Mode R/C are operator-confirmable.
         if ("A+".equals(grade) || "A".equals(grade)) {
             return "confirm";
         }

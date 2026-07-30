@@ -1,0 +1,38 @@
+{
+    "early":  {
+                  "gann_data_gap":  false,
+                  "automation":  "deny",
+                  "asof":  "2026-06-15T14:00:00Z",
+                  "reasons":  [
+                                  "ICT_PD_PREMIUM",
+                                  "ICT_SWEEP_AHH",
+                                  "GANN_PIVOT_NY_OPEN",
+                                  "GANN_ANG_OVER_DOWN",
+                                  "GANN_ANG_ALERT",
+                                  "GANN_TSQ_180",
+                                  "GANN_TSQ_NEAR",
+                                  "GANN_CYC_1_3",
+                                  "GANN_REV_CANDLE",
+                                  "CONFLICT"
+                              ],
+                  "mode":  "NONE",
+                  "grade":  "F"
+              },
+    "jul22":  {
+                  "gann_data_gap":  false,
+                  "automation":  "deny",
+                  "asof":  "2026-07-22T05:15:00Z",
+                  "reasons":  [
+                                  "ICT_PD_PREMIUM",
+                                  "ICT_SWEEP_ALH",
+                                  "GANN_PIVOT_NY_OPEN",
+                                  "GANN_ANG_OVER_DOWN",
+                                  "GANN_ANG_ALERT",
+                                  "GANN_CYC_1_8",
+                                  "GANN_REV_CANDLE",
+                                  "SOFT"
+                              ],
+                  "mode":  "T",
+                  "grade":  "B"
+              }
+}

@@ -97,7 +97,8 @@ public class Backtester {
             List<OhlcBar> d1Win = upTo(history.d1(), asof);
 
             IctSnapshot ict = ictEngine.compute(h4Win, h1Win, m15Win, m5Win, asof, profile.ict());
-            var gann = gannEngine.compute(m5Win.isEmpty() ? m15Win : m5Win, d1Win, asof, profile.gann(), "NY_OPEN");
+            List<OhlcBar> entryBars = GannEngine.preferEntryBars(m5Win, m15Win);
+            var gann = gannEngine.compute(entryBars, d1Win, asof, profile.gann(), "NY_OPEN");
             ConfluenceDecision decision = confluenceEngine.decide(ict, gann, asof, config.newsVeto(),
                     config.weightsVersion());
 
@@ -105,7 +106,7 @@ public class Backtester {
             RiskVerdict risk = MarketQualityGate.mergeIntoVerdict(
                     riskGate.verdict(decision, openCount, sessionDailyR),
                     marketQualityGate.evaluate(marketQualityGate.contextFromBars(
-                            m5Win.isEmpty() ? m15Win : m5Win, asof, decision.direction(),
+                            entryBars, asof, decision.direction(),
                             lastSameDirTs, java.util.Optional.of(profile.maxSpreadPts()), config.style())));
 
             boolean structureFlip = structureFlip(openPosition, ict);
